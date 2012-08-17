@@ -12,8 +12,10 @@ import org.dom4j.Namespace;
 import org.xmpp.component.AbstractComponent;
 import org.xmpp.packet.IQ;
 
+import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.handler.QueryHandler;
 import com.buddycloud.pusher.handler.SignupQueryHandler;
+import com.buddycloud.pusher.handler.UnsubscribeQueryHandler;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -31,12 +33,14 @@ public class XMPPComponent extends AbstractComponent implements PusherSubmitter 
 	private final Map<String, QueryHandler> querySetHandlers = new HashMap<String, QueryHandler>();
 	
 	private final Properties configuration;
+	private DataSource dataSource;
 	
 	/**
 	 * @param configuration
 	 */
 	public XMPPComponent(Properties configuration) {
 		this.configuration = configuration;
+		this.dataSource = new DataSource(configuration);
 		initHandlers();
 		LOGGER.debug("XMPP component initialized.");
 	}
@@ -45,7 +49,8 @@ public class XMPPComponent extends AbstractComponent implements PusherSubmitter 
 	 * 
 	 */
 	private void initHandlers() {
-		addHandler(new SignupQueryHandler(configuration, this), querySetHandlers);
+		addHandler(new SignupQueryHandler(configuration, dataSource, this), querySetHandlers);
+		addHandler(new UnsubscribeQueryHandler(configuration, dataSource, this), querySetHandlers);
 	}
 
 	private void addHandler(QueryHandler queryHandler, Map<String, QueryHandler> handlers) {

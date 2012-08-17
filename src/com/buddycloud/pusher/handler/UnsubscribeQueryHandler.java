@@ -17,8 +17,6 @@ package com.buddycloud.pusher.handler;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import org.dom4j.Element;
@@ -26,23 +24,21 @@ import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.PusherSubmitter;
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
  * @author Abmar
  *
  */
-public class SignupQueryHandler extends AbstractQueryHandler {
+public class UnsubscribeQueryHandler extends AbstractQueryHandler {
 
-	private static final String NAMESPACE = "http://buddycloud.com/pusher/signup";
-	private static final String WELCOME_TEMPLATE = "welcome.tpl";
+	private static final String NAMESPACE = "http://buddycloud.com/pusher/unsubscribe";
 	
 	/**
 	 * @param namespace
 	 * @param properties
 	 */
-	public SignupQueryHandler(Properties properties, DataSource dataSource, 
+	public UnsubscribeQueryHandler(Properties properties, DataSource dataSource, 
 			PusherSubmitter pusherSubmitter) {
 		super(NAMESPACE, properties, dataSource, pusherSubmitter);
 	}
@@ -54,37 +50,26 @@ public class SignupQueryHandler extends AbstractQueryHandler {
 	protected IQ handleQuery(IQ iq) {
 		Element queryElement = iq.getElement().element("query");
 		Element jidElement = queryElement.element("jid");
-		Element emailElement = queryElement.element("email");
 		
-		if (jidElement == null || emailElement == null) {
-			return XMPPUtils.error(iq,
-					"You must provide the jid and the email", getLogger());
+		if (jidElement == null) {
+			return XMPPUtils.error(iq, "You must provide the user's jid", getLogger());
 		}
 		
 		String jid = jidElement.getText();
-		String email = emailElement.getText();
+		deleteSubscriber(jid);
 		
-		insertSubscriber(jid, email);
-		
-		Map<String, String> tokens = new HashMap<String, String>();
-		tokens.put("FIRST_PART_JID", jid.split("@")[0]);
-		tokens.put("EMAIL", email);
-		
-		EmailPusher pusher = new EmailPusher(getProperties(), tokens, WELCOME_TEMPLATE);
-		getPusherSubmitter().submitPusher(pusher);
-		
-		return createResponse(iq, "User [" + jid + "] signed up.");
+		return createResponse(iq, "User [" + jid + "] was unsubscribed.");
 	}
-	
-	private void insertSubscriber(String jid, String email) {
+
+	private void deleteSubscriber(String jid) {
 		PreparedStatement statement = null;
 		try {
 			statement = getDataSource().prepareStatement(
-					"INSERT INTO subscribers(jid, email) values (?, ?)", 
-					jid, email);
+					"DELETE FROM subscribers WHERE jid=?", 
+					jid);
 			statement.execute();
 		} catch (SQLException e) {
-			getLogger().error("Could not insert user [" + jid + ", " + email + "].", e);
+			getLogger().error("Could not delete user [" + jid + "].", e);
 			throw new RuntimeException(e);
 		} finally {
 			DataSource.close(statement);

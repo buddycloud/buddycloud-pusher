@@ -22,6 +22,7 @@ import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.PusherSubmitter;
+import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.utils.Configuration;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
@@ -38,15 +39,18 @@ public abstract class AbstractQueryHandler implements QueryHandler {
 	private final Logger logger;
 	private final Properties properties;
 	private final PusherSubmitter pusherSubmitter;
+	private final DataSource dataSource;
 
 	/**
 	 * Creates a QueryHandler for a given namespace 
 	 * @param namespace
+	 * @param dataSource 
 	 */
 	public AbstractQueryHandler(String namespace, Properties properties, 
-			PusherSubmitter pusherSubmitter) {
+			DataSource dataSource, PusherSubmitter pusherSubmitter) {
 		this.namespace = namespace;
 		this.properties = properties;
+		this.dataSource = dataSource;
 		this.pusherSubmitter = pusherSubmitter;
 		this.logger = Logger.getLogger(getClass());
 	}
@@ -94,5 +98,12 @@ public abstract class AbstractQueryHandler implements QueryHandler {
 	 */
 	public PusherSubmitter getPusherSubmitter() {
 		return pusherSubmitter;
+	}
+	
+	/**
+	 * @return the dataSource
+	 */
+	public DataSource getDataSource() {
+		return dataSource;
 	}
 }
