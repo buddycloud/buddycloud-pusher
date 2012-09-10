@@ -21,6 +21,7 @@ import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
 
+import com.buddycloud.pusher.NotificationSettings;
 import com.buddycloud.pusher.db.DataSource;
 
 /**
@@ -44,6 +45,31 @@ public class UserUtils {
 			return null;
 		} catch (SQLException e) {
 			LOGGER.error("Could not get email from user [" + jid + "].", e);
+			throw new RuntimeException(e);
+		} finally {
+			DataSource.close(statement);
+		}
+	}
+	
+	public static NotificationSettings getNotificationSettings(String jid, DataSource dataSource) {
+		PreparedStatement statement = null;
+		try {
+			statement = dataSource.prepareStatement(
+					"SELECT * FROM notification_settings WHERE jid=?", 
+					jid);
+			ResultSet resultSet = statement.getResultSet();
+			if (resultSet.next()) {
+				NotificationSettings notificationSettings = new NotificationSettings();
+				notificationSettings.setPostAfterMe(resultSet.getBoolean("post_after_me"));
+				notificationSettings.setPostMentionedMe(resultSet.getBoolean("post_mentioned_me"));
+				notificationSettings.setPostOnMyChannel(resultSet.getBoolean("post_on_my_channel"));
+				notificationSettings.setPostOnSubscribedChannel(resultSet.getBoolean("post_on_subscribed_channel"));
+				notificationSettings.setFollowedMyChannel(resultSet.getBoolean("follow_my_channel"));
+				return notificationSettings;
+			}
+			return null;
+		} catch (SQLException e) {
+			LOGGER.error("Could not get notification settings from user [" + jid + "].", e);
 			throw new RuntimeException(e);
 		} finally {
 			DataSource.close(statement);

@@ -13,9 +13,15 @@ import org.xmpp.component.AbstractComponent;
 import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.db.DataSource;
+import com.buddycloud.pusher.handler.GetNotificationSettingsQueryHandler;
 import com.buddycloud.pusher.handler.QueryHandler;
 import com.buddycloud.pusher.handler.SignupQueryHandler;
 import com.buddycloud.pusher.handler.DeleteUserQueryHandler;
+import com.buddycloud.pusher.handler.UserFollowedQueryHandler;
+import com.buddycloud.pusher.handler.UserPostedAfterMyPostQueryHandler;
+import com.buddycloud.pusher.handler.UserPostedMentionQueryHandler;
+import com.buddycloud.pusher.handler.UserPostedOnMyChannelQueryHandler;
+import com.buddycloud.pusher.handler.UserPostedOnSubscribedChannelQueryHandler;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -49,8 +55,16 @@ public class XMPPComponent extends AbstractComponent implements PusherSubmitter 
 	 * 
 	 */
 	private void initHandlers() {
+		// Get handlers
+		addHandler(new GetNotificationSettingsQueryHandler(configuration, dataSource, this), querySetHandlers);
+		// Set handlers
 		addHandler(new SignupQueryHandler(configuration, dataSource, this), querySetHandlers);
 		addHandler(new DeleteUserQueryHandler(configuration, dataSource, this), querySetHandlers);
+		addHandler(new UserFollowedQueryHandler(configuration, dataSource, this), querySetHandlers);
+		addHandler(new UserPostedAfterMyPostQueryHandler(configuration, dataSource, this), querySetHandlers);
+		addHandler(new UserPostedMentionQueryHandler(configuration, dataSource, this), querySetHandlers);
+		addHandler(new UserPostedOnMyChannelQueryHandler(configuration, dataSource, this), querySetHandlers);
+		addHandler(new UserPostedOnSubscribedChannelQueryHandler(configuration, dataSource, this), querySetHandlers);
 	}
 
 	private void addHandler(QueryHandler queryHandler, Map<String, QueryHandler> handlers) {
