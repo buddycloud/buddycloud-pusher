@@ -24,13 +24,12 @@ import com.buddycloud.pusher.NotificationSettings;
 import com.buddycloud.pusher.PusherSubmitter;
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.utils.NotificationUtils;
-import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
  * @author Abmar
  * 
  */
-public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
+public class SetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 
 	private static final String NAMESPACE = "http://buddycloud.com/pusher/notification-settings";
 
@@ -38,7 +37,7 @@ public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 	 * @param namespace
 	 * @param properties
 	 */
-	public GetNotificationSettingsQueryHandler(Properties properties,
+	public SetNotificationSettingsQueryHandler(Properties properties,
 			DataSource dataSource, PusherSubmitter pusherSubmitter) {
 		super(NAMESPACE, properties, dataSource, pusherSubmitter);
 	}
@@ -53,13 +52,15 @@ public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 	@Override
 	protected IQ handleQuery(IQ iq) {
 		String userJid = iq.getFrom().toBareJID();
-		NotificationSettings notificationSettings = NotificationUtils
-				.getNotificationSettings(userJid, getDataSource());
-		if (notificationSettings == null) {
-			return XMPPUtils.error(iq, 
-					"The user [" + userJid + "] is not registered on the Pusher.", getLogger());
-		}
-		return createResponse(iq, userJid, notificationSettings);
+		Element queryElement = iq.getElement().element("query");
+		Element settingsEl = queryElement.element("notificationSettings");
+		
+		NotificationSettings notificationSettings = NotificationUtils.fromXML(settingsEl);
+		NotificationSettings updatedNotificationSettings = NotificationUtils.updateNotificationSettings(userJid, 
+				getDataSource(), 
+				notificationSettings);
+		
+		return createResponse(iq, userJid, updatedNotificationSettings);
 	}
 
 	/**
@@ -72,26 +73,7 @@ public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 			NotificationSettings notificationSettings) {
 		IQ result = IQ.createResultIQ(iq);
 		Element queryElement = result.getElement().addElement("query", getNamespace());
-		appendXML(queryElement, notificationSettings);
+		NotificationUtils.appendXML(queryElement, notificationSettings);
 		return result;
-	}
-
-	/**
-	 * @param queryElement 
-	 * @param notificationSettings
-	 * @return
-	 */
-	private static void appendXML(Element queryElement, NotificationSettings notificationSettings) {
-		Element settingsEl = queryElement.addElement("notificationSettings");
-		settingsEl.addElement("postAfterMe").setText(
-				notificationSettings.getPostAfterMe().toString());
-		settingsEl.addElement("postMentionedMe").setText(
-				notificationSettings.getPostMentionedMe().toString());
-		settingsEl.addElement("postOnMyChannel").setText(
-				notificationSettings.getPostOnMyChannel().toString());
-		settingsEl.addElement("postOnSubscribedChannel").setText(
-				notificationSettings.getPostOnSubscribedChannel().toString());
-		settingsEl.addElement("followMyChannel").setText(
-				notificationSettings.getFollowedMyChannel().toString());
 	}
 }

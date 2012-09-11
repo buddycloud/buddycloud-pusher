@@ -46,7 +46,11 @@ public class DataSource {
 	}
 	
 	public PreparedStatement prepareStatement(String statement, Object... args) throws SQLException {
-		PreparedStatement prepareStatement = dataSource.getConnection().prepareStatement(statement);
+		return prepareStatement(statement, dataSource.getConnection(), args);
+	}
+	
+	public PreparedStatement prepareStatement(String statement, Connection connection, Object... args) throws SQLException {
+		PreparedStatement prepareStatement = connection.prepareStatement(statement);
 		for (int i = 1; i <= args.length; i++) {
 			prepareStatement.setObject(i, args[i-1]);
 		}
