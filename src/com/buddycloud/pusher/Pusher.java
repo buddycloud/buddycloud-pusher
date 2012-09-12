@@ -19,8 +19,8 @@ package com.buddycloud.pusher;
  * @author Abmar
  *
  */
-public interface Pusher {
+public interface Pusher<T> {
 
-	void push();
+	void push(T t);
 	
 }

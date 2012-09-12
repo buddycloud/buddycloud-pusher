@@ -3,8 +3,6 @@ package com.buddycloud.pusher;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -13,12 +11,13 @@ import org.xmpp.component.AbstractComponent;
 import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.db.DataSource;
+import com.buddycloud.pusher.email.EmailPusher;
+import com.buddycloud.pusher.handler.DeleteUserQueryHandler;
 import com.buddycloud.pusher.handler.FollowRequestQueryHandler;
 import com.buddycloud.pusher.handler.GetNotificationSettingsQueryHandler;
 import com.buddycloud.pusher.handler.QueryHandler;
 import com.buddycloud.pusher.handler.SetNotificationSettingsQueryHandler;
 import com.buddycloud.pusher.handler.SignupQueryHandler;
-import com.buddycloud.pusher.handler.DeleteUserQueryHandler;
 import com.buddycloud.pusher.handler.UserFollowedQueryHandler;
 import com.buddycloud.pusher.handler.UserPostedAfterMyPostQueryHandler;
 import com.buddycloud.pusher.handler.UserPostedMentionQueryHandler;
@@ -30,18 +29,18 @@ import com.buddycloud.pusher.utils.XMPPUtils;
  * @author Abmar
  *
  */
-public class XMPPComponent extends AbstractComponent implements PusherSubmitter {
+public class XMPPComponent extends AbstractComponent {
 
 	private static final String DESCRIPTION = "Pusher service for buddycloud";
 	private static final String NAME = "Buddycloud pusher";
 	private static final Logger LOGGER = Logger.getLogger(XMPPComponent.class);
-	private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 	
 	private final Map<String, QueryHandler> queryGetHandlers = new HashMap<String, QueryHandler>();
 	private final Map<String, QueryHandler> querySetHandlers = new HashMap<String, QueryHandler>();
 	
 	private final Properties configuration;
 	private DataSource dataSource;
+	private final EmailPusher emailPusher;
 	
 	/**
 	 * @param configuration
@@ -49,6 +48,7 @@ public class XMPPComponent extends AbstractComponent implements PusherSubmitter 
 	public XMPPComponent(Properties configuration) {
 		this.configuration = configuration;
 		this.dataSource = new DataSource(configuration);
+		this.emailPusher = new EmailPusher(configuration);
 		initHandlers();
 		LOGGER.debug("XMPP component initialized.");
 	}
@@ -58,17 +58,17 @@ public class XMPPComponent extends AbstractComponent implements PusherSubmitter 
 	 */
 	private void initHandlers() {
 		// Get handlers
-		addHandler(new GetNotificationSettingsQueryHandler(configuration, dataSource, this), queryGetHandlers);
+		addHandler(new GetNotificationSettingsQueryHandler(configuration, dataSource, emailPusher), queryGetHandlers);
 		// Set handlers
-		addHandler(new FollowRequestQueryHandler(configuration, dataSource, this), querySetHandlers);
-		addHandler(new SetNotificationSettingsQueryHandler(configuration, dataSource, this), querySetHandlers);
-		addHandler(new SignupQueryHandler(configuration, dataSource, this), querySetHandlers);
-		addHandler(new DeleteUserQueryHandler(configuration, dataSource, this), querySetHandlers);
-		addHandler(new UserFollowedQueryHandler(configuration, dataSource, this), querySetHandlers);
-		addHandler(new UserPostedAfterMyPostQueryHandler(configuration, dataSource, this), querySetHandlers);
-		addHandler(new UserPostedMentionQueryHandler(configuration, dataSource, this), querySetHandlers);
-		addHandler(new UserPostedOnMyChannelQueryHandler(configuration, dataSource, this), querySetHandlers);
-		addHandler(new UserPostedOnSubscribedChannelQueryHandler(configuration, dataSource, this), querySetHandlers);
+		addHandler(new FollowRequestQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
+		addHandler(new SetNotificationSettingsQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
+		addHandler(new SignupQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
+		addHandler(new DeleteUserQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
+		addHandler(new UserFollowedQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
+		addHandler(new UserPostedAfterMyPostQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
+		addHandler(new UserPostedMentionQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
+		addHandler(new UserPostedOnMyChannelQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
+		addHandler(new UserPostedOnSubscribedChannelQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
 	}
 
 	private void addHandler(QueryHandler queryHandler, Map<String, QueryHandler> handlers) {
@@ -132,16 +132,4 @@ public class XMPPComponent extends AbstractComponent implements PusherSubmitter 
 		return ("Notification");
 	}
 
-	/* (non-Javadoc)
-	 * @see com.buddycloud.pusher.PusherSubmitter#submitPusher(com.buddycloud.pusher.Pusher)
-	 */
-	@Override
-	public void submitPusher(final Pusher pusher) {
-		executorService.submit(new Runnable() {
-			@Override
-			public void run() {
-				pusher.push();
-			}
-		});
-	}
 }

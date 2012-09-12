@@ -24,8 +24,8 @@ import java.util.Properties;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
-import com.buddycloud.pusher.PusherSubmitter;
 import com.buddycloud.pusher.db.DataSource;
+import com.buddycloud.pusher.email.Email;
 import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
@@ -43,8 +43,8 @@ public class SignupQueryHandler extends AbstractQueryHandler {
 	 * @param properties
 	 */
 	public SignupQueryHandler(Properties properties, DataSource dataSource, 
-			PusherSubmitter pusherSubmitter) {
-		super(NAMESPACE, properties, dataSource, pusherSubmitter);
+			EmailPusher emailPusher) {
+		super(NAMESPACE, properties, dataSource, emailPusher);
 	}
 
 	/* (non-Javadoc)
@@ -62,16 +62,16 @@ public class SignupQueryHandler extends AbstractQueryHandler {
 		}
 		
 		String jid = jidElement.getText();
-		String email = emailElement.getText();
+		String emailAddress = emailElement.getText();
 		
-		insertSubscriber(jid, email);
+		insertSubscriber(jid, emailAddress);
 		
 		Map<String, String> tokens = new HashMap<String, String>();
 		tokens.put("FIRST_PART_JID", jid.split("@")[0]);
-		tokens.put("EMAIL", email);
+		tokens.put("EMAIL", emailAddress);
 		
-		EmailPusher pusher = new EmailPusher(getProperties(), tokens, WELCOME_TEMPLATE);
-		getPusherSubmitter().submitPusher(pusher);
+		Email email = getEmailPusher().createEmail(tokens, WELCOME_TEMPLATE);
+		getEmailPusher().push(email);
 		
 		return createResponse(iq, "User [" + jid + "] signed up.");
 	}

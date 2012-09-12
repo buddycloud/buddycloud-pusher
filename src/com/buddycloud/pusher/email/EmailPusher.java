@@ -18,6 +18,10 @@ package com.buddycloud.pusher.email;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -27,6 +31,8 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.log4j.Logger;
+
 import com.buddycloud.pusher.Pusher;
 import com.buddycloud.pusher.utils.Configuration;
 
@@ -34,33 +40,71 @@ import com.buddycloud.pusher.utils.Configuration;
  * @author Abmar
  *
  */
-public class EmailPusher implements Pusher {
+public class EmailPusher implements Pusher<Email> {
 
+	private static final Logger LOGGER = Logger.getLogger(EmailPusher.class);
 	private final Properties properties;
-	private final Map<String, String> tokens;
-	private final String templateFileName;
+	private Map<String, String> defaultTokens;
+	private ConcurrentLinkedQueue<Email> emailsToSend = new ConcurrentLinkedQueue<Email>();
 
 	/**
 	 * 
 	 */
-	public EmailPusher(Properties properties, Map<String, String> tokens, 
-			String templateFileName) {
+	public EmailPusher(Properties properties) {
 		this.properties = properties;
-		this.tokens = new HashMap<String, String>();
-		this.tokens.putAll(getMailTemplateTokens());
-		this.tokens.putAll(tokens);
-		this.templateFileName = templateFileName;
+		this.defaultTokens = readMailTemplateTokens();
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Runnable#run()
+	/**
+	 * 
 	 */
-	@Override
-	public void push() {
-		send(Email.parse(tokens, templateFileName));
+	public void start() {
+		ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(10);
+		threadPool.scheduleAtFixedRate(createPusherRunnable(), 0, 1, TimeUnit.MINUTES);
+	}
+	
+	/**
+	 * @return
+	 */
+	private Runnable createPusherRunnable() {
+		return new Runnable() {
+			@Override
+			public void run() {
+				int emailCount = emailsToSend.size();
+				Session session = getSMTPSession();
+				
+				for (int i = 0; i < emailCount; i++) {
+					Email email = emailsToSend.poll();
+					if (email == null) {
+						return;
+					}
+					try {
+						send(email, session);
+					} catch (MessagingException e) {
+						LOGGER.error(e);
+					}
+				}
+				
+				try {
+					session.getTransport().close();
+				} catch (MessagingException e) {
+					LOGGER.error(e);
+				}
+			}
+		};
 	}
 
-	private void send(Email email) {
+	private void send(Email email, Session session) throws MessagingException {
+		Message message = new MimeMessage(session);
+		message.setFrom(new InternetAddress(email.getFrom()));
+		message.setRecipients(Message.RecipientType.TO,
+				InternetAddress.parse(email.getTo()));
+		message.setSubject(email.getSubject());
+		message.setContent(email.getContent(), "text/html");
+		Transport.send(message);
+	}
+
+	private Session getSMTPSession() {
 		final String username = properties.getProperty(Configuration.MAIL_USERNAME);
 		final String password = properties.getProperty(Configuration.MAIL_PASSWORD);
 		Properties smtpProps = getSMTPProperties();
@@ -71,19 +115,7 @@ public class EmailPusher implements Pusher {
 						return new PasswordAuthentication(username, password);
 					}
 				});
-		try {
-			Message message = new MimeMessage(session);
-			message.setFrom(new InternetAddress(email.getFrom()));
-			message.setRecipients(Message.RecipientType.TO,
-					InternetAddress.parse(email.getTo()));
-			message.setSubject(email.getSubject());
-			message.setContent(email.getContent(), "text/html");
-
-			Transport.send(message);
-
-		} catch (MessagingException e) {
-			throw new RuntimeException(e);
-		}
+		return session;
 	}
 
 	private Properties getSMTPProperties() {
@@ -97,7 +129,7 @@ public class EmailPusher implements Pusher {
 		return smtpProps;
 	}
 	
-	private Map<String, String> getMailTemplateTokens() {
+	private Map<String, String> readMailTemplateTokens() {
 		Map<String, String> mailTemplateTokens = new HashMap<String, String>();
 		for (Object key : properties.keySet()) {
 			String keyStr = (String) key;
@@ -107,5 +139,15 @@ public class EmailPusher implements Pusher {
 		}
 		return mailTemplateTokens;
 	}
+	
+	public void push(Email email) {
+		emailsToSend.offer(email);
+	}
 
+	public Email createEmail(Map<String, String> tokens, String templateFileName) {
+		HashMap<String, String> allTokens = new HashMap<String, String>();
+		allTokens.putAll(defaultTokens);
+		allTokens.putAll(tokens);
+		return Email.parse(allTokens, templateFileName);
+	}
 }

@@ -22,8 +22,8 @@ import java.util.Properties;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
-import com.buddycloud.pusher.PusherSubmitter;
 import com.buddycloud.pusher.db.DataSource;
+import com.buddycloud.pusher.email.Email;
 import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.UserUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
@@ -42,8 +42,8 @@ public class FollowRequestQueryHandler extends AbstractQueryHandler {
 	 * @param properties
 	 */
 	public FollowRequestQueryHandler(Properties properties, DataSource dataSource, 
-			PusherSubmitter pusherSubmitter) {
-		super(NAMESPACE, properties, dataSource, pusherSubmitter);
+			 EmailPusher emailPusher) {
+		super(NAMESPACE, properties, dataSource, emailPusher);
 	}
 
 	/* (non-Javadoc)
@@ -72,8 +72,8 @@ public class FollowRequestQueryHandler extends AbstractQueryHandler {
 		tokens.put("CHANNEL_JID", channelJid);
 		tokens.put("EMAIL", ownerEmail);
 		
-		EmailPusher pusher = new EmailPusher(getProperties(), tokens, FOLLOWREQUEST_TEMPLATE);
-		getPusherSubmitter().submitPusher(pusher);
+		Email email = getEmailPusher().createEmail(tokens, FOLLOWREQUEST_TEMPLATE);
+		getEmailPusher().push(email);
 		
 		return createResponse(iq, "User [" + userJid + "] sent a request to follow your channel [" + channelJid + "].");
 	}

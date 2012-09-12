@@ -22,8 +22,8 @@ import java.util.Properties;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
-import com.buddycloud.pusher.PusherSubmitter;
 import com.buddycloud.pusher.db.DataSource;
+import com.buddycloud.pusher.email.Email;
 import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.UserUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
@@ -42,8 +42,8 @@ public class UserPostedOnMyChannelQueryHandler extends AbstractQueryHandler {
 	 * @param properties
 	 */
 	public UserPostedOnMyChannelQueryHandler(Properties properties, DataSource dataSource, 
-			PusherSubmitter pusherSubmitter) {
-		super(NAMESPACE, properties, dataSource, pusherSubmitter);
+			EmailPusher emailPusher) {
+		super(NAMESPACE, properties, dataSource, emailPusher);
 	}
 
 	/* (non-Javadoc)
@@ -75,8 +75,8 @@ public class UserPostedOnMyChannelQueryHandler extends AbstractQueryHandler {
 		tokens.put("CONTENT", postContent);
 		tokens.put("EMAIL", ownerEmail);
 		
-		EmailPusher pusher = new EmailPusher(getProperties(), tokens, USERPOSTED_TEMPLATE);
-		getPusherSubmitter().submitPusher(pusher);
+		Email email = getEmailPusher().createEmail(tokens, USERPOSTED_TEMPLATE);
+		getEmailPusher().push(email);
 		
 		return createResponse(iq, "User [" + userJid + "] has posted on channel [" + channelJid + "].");
 	}

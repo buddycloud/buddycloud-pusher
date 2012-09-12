@@ -22,8 +22,8 @@ import java.util.Properties;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
-import com.buddycloud.pusher.PusherSubmitter;
 import com.buddycloud.pusher.db.DataSource;
+import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -39,8 +39,8 @@ public class DeleteUserQueryHandler extends AbstractQueryHandler {
 	 * @param properties
 	 */
 	public DeleteUserQueryHandler(Properties properties, DataSource dataSource, 
-			PusherSubmitter pusherSubmitter) {
-		super(NAMESPACE, properties, dataSource, pusherSubmitter);
+			 EmailPusher emailPusher) {
+		super(NAMESPACE, properties, dataSource, emailPusher);
 	}
 
 	/* (non-Javadoc)

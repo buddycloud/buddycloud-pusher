@@ -21,8 +21,8 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
-import com.buddycloud.pusher.PusherSubmitter;
 import com.buddycloud.pusher.db.DataSource;
+import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.Configuration;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
@@ -38,8 +38,8 @@ public abstract class AbstractQueryHandler implements QueryHandler {
 	private final String namespace;
 	private final Logger logger;
 	private final Properties properties;
-	private final PusherSubmitter pusherSubmitter;
 	private final DataSource dataSource;
+	private final EmailPusher emailPusher;
 
 	/**
 	 * Creates a QueryHandler for a given namespace 
@@ -47,11 +47,11 @@ public abstract class AbstractQueryHandler implements QueryHandler {
 	 * @param dataSource 
 	 */
 	public AbstractQueryHandler(String namespace, Properties properties, 
-			DataSource dataSource, PusherSubmitter pusherSubmitter) {
+			DataSource dataSource, EmailPusher emailPusher) {
 		this.namespace = namespace;
 		this.properties = properties;
 		this.dataSource = dataSource;
-		this.pusherSubmitter = pusherSubmitter;
+		this.emailPusher = emailPusher;
 		this.logger = Logger.getLogger(getClass());
 	}
 	
@@ -94,10 +94,10 @@ public abstract class AbstractQueryHandler implements QueryHandler {
 	}
 	
 	/**
-	 * @return the pusherSubmitter
+	 * @return the emailPusher
 	 */
-	public PusherSubmitter getPusherSubmitter() {
-		return pusherSubmitter;
+	public EmailPusher getEmailPusher() {
+		return emailPusher;
 	}
 	
 	/**

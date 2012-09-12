@@ -21,8 +21,8 @@ import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.NotificationSettings;
-import com.buddycloud.pusher.PusherSubmitter;
 import com.buddycloud.pusher.db.DataSource;
+import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.NotificationUtils;
 
 /**
@@ -38,8 +38,8 @@ public class SetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 	 * @param properties
 	 */
 	public SetNotificationSettingsQueryHandler(Properties properties,
-			DataSource dataSource, PusherSubmitter pusherSubmitter) {
-		super(NAMESPACE, properties, dataSource, pusherSubmitter);
+			DataSource dataSource, EmailPusher emailPusher) {
+		super(NAMESPACE, properties, dataSource, emailPusher);
 	}
 
 	/*
