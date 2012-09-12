@@ -3,9 +3,9 @@
 <%FIRST_PART_JID%> posted on your channel
 Hello <%FIRST_PART_OWNER_JID%>,
  
-<%FIRST_PART_JID%> posted on channel <?CHANNEL_JID?> that you subscribe:
+<%FIRST_PART_JID%> posted on channel <5CHANNEL_JID%> that you subscribe:
 
-<?CONTENT?>
+<%CONTENT%>
  
 For help email <%SENDER_EMAIL%>. We’re excited to have you on <%DOMAIN_NAME%>’s buddycloud.
  
