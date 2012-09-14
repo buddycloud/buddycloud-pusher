@@ -35,7 +35,7 @@ public class UserUtils {
 		PreparedStatement statement = null;
 		try {
 			statement = dataSource.prepareStatement(
-					"SELECT email from subscribers WHERE jid=?", 
+					"SELECT email from notification_settings WHERE jid=?", 
 					jid);
 			ResultSet resultSet = statement.getResultSet();
 			if (resultSet.next()) {

@@ -26,6 +26,7 @@ public class NotificationSettings {
 	private Boolean postOnMyChannel;
 	private Boolean postOnSubscribedChannel;
 	private Boolean followedMyChannel;
+	private Boolean followRequest;
 	
 	/**
 	 * @return the postAfterMe
@@ -86,6 +87,14 @@ public class NotificationSettings {
 	 */
 	public void setFollowedMyChannel(Boolean followedMyChannel) {
 		this.followedMyChannel = followedMyChannel;
+	}
+	
+	public Boolean getFollowRequest() {
+		return followRequest;
+	}
+	
+	public void setFollowRequest(Boolean followRequest) {
+		this.followRequest = followRequest;
 	}
 	
 }

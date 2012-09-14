@@ -58,14 +58,14 @@ public class DeleteUserQueryHandler extends AbstractQueryHandler {
 		String jid = jidElement.getText();
 		deleteSubscriber(jid);
 		
-		return createResponse(iq, "User [" + jid + "] was unsubscribed.");
+		return createResponse(iq, "User [" + jid + "] was deleted.");
 	}
 
 	private void deleteSubscriber(String jid) {
 		PreparedStatement statement = null;
 		try {
 			statement = getDataSource().prepareStatement(
-					"DELETE FROM subscribers WHERE jid=?", 
+					"DELETE FROM notification_settings WHERE jid=?", 
 					jid);
 			statement.execute();
 		} catch (SQLException e) {

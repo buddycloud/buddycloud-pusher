@@ -79,12 +79,13 @@ public class NotificationUtils {
 			
 			insertStatement = dataSource.prepareStatement(
 					"INSERT INTO notification_settings(jid, post_after_me, post_mentioned_me, post_on_my_channel, " +
-					"post_on_subscribed_channel, follow_my_channel) values (?, ?, ?, ?, ?, ?)", connection, 
+					"post_on_subscribed_channel, follow_my_channel, follow_request) values (?, ?, ?, ?, ?, ?)", connection, 
 					jid, updatedNotificationsSettings.getPostAfterMe(), 
 					updatedNotificationsSettings.getPostMentionedMe(), 
 					updatedNotificationsSettings.getPostOnMyChannel(), 
 					updatedNotificationsSettings.getPostOnSubscribedChannel(), 
-					updatedNotificationsSettings.getFollowedMyChannel());
+					updatedNotificationsSettings.getFollowedMyChannel(),
+					updatedNotificationsSettings.getFollowRequest());
 			insertStatement.executeUpdate();
 			
 			connection.commit();
@@ -147,6 +148,11 @@ public class NotificationUtils {
 			oldNotificationsSettings.setFollowedMyChannel(
 					notificationSettings.getFollowedMyChannel());
 		}
+		
+		if (notificationSettings.getFollowRequest() != null) {
+			oldNotificationsSettings.setFollowRequest(
+					notificationSettings.getFollowRequest());
+		}
 	}
 
 	/**
@@ -166,6 +172,8 @@ public class NotificationUtils {
 				notificationSettings.getPostOnSubscribedChannel().toString());
 		settingsEl.addElement("followMyChannel").setText(
 				notificationSettings.getFollowedMyChannel().toString());
+		settingsEl.addElement("followRequest").setText(
+				notificationSettings.getFollowRequest().toString());
 	}
 
 	public static NotificationSettings fromXML(Element settingsEl) {

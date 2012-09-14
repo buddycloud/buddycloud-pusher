@@ -93,5 +93,7 @@ public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 				notificationSettings.getPostOnSubscribedChannel().toString());
 		settingsEl.addElement("followMyChannel").setText(
 				notificationSettings.getFollowedMyChannel().toString());
+		settingsEl.addElement("followRequest").setText(
+				notificationSettings.getFollowRequest().toString());
 	}
 }

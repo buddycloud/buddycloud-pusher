@@ -80,7 +80,7 @@ public class SignupQueryHandler extends AbstractQueryHandler {
 		PreparedStatement statement = null;
 		try {
 			statement = getDataSource().prepareStatement(
-					"INSERT INTO subscribers(jid, email) values (?, ?)", 
+					"INSERT INTO notification_settings(jid, email) values (?, ?)", 
 					jid, email);
 			statement.execute();
 		} catch (SQLException e) {
