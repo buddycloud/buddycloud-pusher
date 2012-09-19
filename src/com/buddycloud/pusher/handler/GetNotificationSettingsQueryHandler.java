@@ -24,7 +24,6 @@ import com.buddycloud.pusher.NotificationSettings;
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.NotificationUtils;
-import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
  * @author Abmar
@@ -55,10 +54,6 @@ public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 		String userJid = iq.getFrom().toBareJID();
 		NotificationSettings notificationSettings = NotificationUtils
 				.getNotificationSettings(userJid, getDataSource());
-		if (notificationSettings == null) {
-			return XMPPUtils.error(iq, 
-					"The user [" + userJid + "] is not registered on the Pusher.", getLogger());
-		}
 		return createResponse(iq, userJid, notificationSettings);
 	}
 

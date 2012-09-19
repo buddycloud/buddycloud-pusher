@@ -22,12 +22,12 @@ package com.buddycloud.pusher;
 public class NotificationSettings {
 	
 	private String email;
-	private Boolean postAfterMe;
-	private Boolean postMentionedMe;
-	private Boolean postOnMyChannel;
-	private Boolean postOnSubscribedChannel;
-	private Boolean followedMyChannel;
-	private Boolean followRequest;
+	private Boolean postAfterMe = true;
+	private Boolean postMentionedMe = true;
+	private Boolean postOnMyChannel = true;
+	private Boolean postOnSubscribedChannel = false;
+	private Boolean followedMyChannel = true;
+	private Boolean followRequest = true;
 	
 	/**
 	 * @return the postAfterMe
