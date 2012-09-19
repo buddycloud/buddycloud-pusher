@@ -40,11 +40,13 @@ public class NotificationUtils {
 			ResultSet resultSet = statement.getResultSet();
 			if (resultSet.next()) {
 				NotificationSettings notificationSettings = new NotificationSettings();
+				notificationSettings.setEmail(resultSet.getString("email"));
 				notificationSettings.setPostAfterMe(resultSet.getBoolean("post_after_me"));
 				notificationSettings.setPostMentionedMe(resultSet.getBoolean("post_mentioned_me"));
 				notificationSettings.setPostOnMyChannel(resultSet.getBoolean("post_on_my_channel"));
 				notificationSettings.setPostOnSubscribedChannel(resultSet.getBoolean("post_on_subscribed_channel"));
 				notificationSettings.setFollowedMyChannel(resultSet.getBoolean("follow_my_channel"));
+				notificationSettings.setFollowRequest(resultSet.getBoolean("follow_request"));
 				return notificationSettings;
 			}
 			return null;
@@ -78,9 +80,11 @@ public class NotificationUtils {
 			deleteStatement.executeUpdate();
 			
 			insertStatement = dataSource.prepareStatement(
-					"INSERT INTO notification_settings(jid, post_after_me, post_mentioned_me, post_on_my_channel, " +
-					"post_on_subscribed_channel, follow_my_channel, follow_request) values (?, ?, ?, ?, ?, ?)", connection, 
-					jid, updatedNotificationsSettings.getPostAfterMe(), 
+					"INSERT INTO notification_settings(jid, email, post_after_me, post_mentioned_me, post_on_my_channel, " +
+					"post_on_subscribed_channel, follow_my_channel, follow_request) values (?, ?, ?, ?, ?, ?, ?)", connection, 
+					jid, 
+					updatedNotificationsSettings.getEmail(),
+					updatedNotificationsSettings.getPostAfterMe(), 
 					updatedNotificationsSettings.getPostMentionedMe(), 
 					updatedNotificationsSettings.getPostOnMyChannel(), 
 					updatedNotificationsSettings.getPostOnSubscribedChannel(), 
@@ -128,6 +132,11 @@ public class NotificationUtils {
 			NotificationSettings notificationSettings,
 			NotificationSettings oldNotificationsSettings) {
 		
+		if (notificationSettings.getEmail() != null) {
+			oldNotificationsSettings.setEmail(
+					notificationSettings.getEmail());
+		}
+		
 		if (notificationSettings.getPostAfterMe() != null) {
 			oldNotificationsSettings.setPostAfterMe(
 					notificationSettings.getPostAfterMe());
@@ -162,6 +171,8 @@ public class NotificationUtils {
 	 */
 	public static void appendXML(Element queryElement, NotificationSettings notificationSettings) {
 		Element settingsEl = queryElement.addElement("notificationsettings");
+		settingsEl.addElement("email").setText(
+				notificationSettings.getEmail());
 		settingsEl.addElement("postAfterMe").setText(
 				notificationSettings.getPostAfterMe().toString());
 		settingsEl.addElement("postMentionedMe").setText(
@@ -179,17 +190,21 @@ public class NotificationUtils {
 	public static NotificationSettings fromXML(Element settingsEl) {
 		NotificationSettings notificationSettings = new NotificationSettings();
 		
-		Boolean postAfterMe = NotificationUtils.getBoolean(settingsEl, "postAfterMe");
-		Boolean postMentionedMe = NotificationUtils.getBoolean(settingsEl, "postMentionedMe");
-		Boolean postOnMyChannel = NotificationUtils.getBoolean(settingsEl, "postOnMyChannel");
-		Boolean postOnSubscribedChannel = NotificationUtils.getBoolean(settingsEl, "postOnSubscribedChannel");
-		Boolean followMyChannel = NotificationUtils.getBoolean(settingsEl, "followMyChannel");
+		String email = getString(settingsEl, "email");
+		Boolean postAfterMe = getBoolean(settingsEl, "postAfterMe");
+		Boolean postMentionedMe = getBoolean(settingsEl, "postMentionedMe");
+		Boolean postOnMyChannel = getBoolean(settingsEl, "postOnMyChannel");
+		Boolean postOnSubscribedChannel = getBoolean(settingsEl, "postOnSubscribedChannel");
+		Boolean followMyChannel = getBoolean(settingsEl, "followMyChannel");
+		Boolean followRequest = getBoolean(settingsEl, "followRequest");
 		
+		notificationSettings.setEmail(email);
 		notificationSettings.setPostAfterMe(postAfterMe);
 		notificationSettings.setPostMentionedMe(postMentionedMe);
 		notificationSettings.setPostOnMyChannel(postOnMyChannel);
 		notificationSettings.setPostOnSubscribedChannel(postOnSubscribedChannel);
 		notificationSettings.setFollowedMyChannel(followMyChannel);
+		notificationSettings.setFollowRequest(followRequest);
 		return notificationSettings;
 	}
 
@@ -200,5 +215,12 @@ public class NotificationUtils {
 		}
 		return Boolean.valueOf(el.getText());
 	}
-
+	
+	private static String getString(Element settingsEl, String key) {
+		Element el = settingsEl.element(key);
+		if (el == null) {
+			return null;
+		}
+		return el.getText();
+	}
 }

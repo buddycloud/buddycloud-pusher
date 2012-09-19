@@ -21,6 +21,7 @@ package com.buddycloud.pusher;
  */
 public class NotificationSettings {
 	
+	private String email;
 	private Boolean postAfterMe;
 	private Boolean postMentionedMe;
 	private Boolean postOnMyChannel;
@@ -95,6 +96,12 @@ public class NotificationSettings {
 	
 	public void setFollowRequest(Boolean followRequest) {
 		this.followRequest = followRequest;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
 	}
 	
 }

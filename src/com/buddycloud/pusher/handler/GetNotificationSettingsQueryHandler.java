@@ -72,28 +72,7 @@ public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 			NotificationSettings notificationSettings) {
 		IQ result = IQ.createResultIQ(iq);
 		Element queryElement = result.getElement().addElement("query", getNamespace());
-		appendXML(queryElement, notificationSettings);
+		NotificationUtils.appendXML(queryElement, notificationSettings);
 		return result;
-	}
-
-	/**
-	 * @param queryElement 
-	 * @param notificationSettings
-	 * @return
-	 */
-	private static void appendXML(Element queryElement, NotificationSettings notificationSettings) {
-		Element settingsEl = queryElement.addElement("notificationSettings");
-		settingsEl.addElement("postAfterMe").setText(
-				notificationSettings.getPostAfterMe().toString());
-		settingsEl.addElement("postMentionedMe").setText(
-				notificationSettings.getPostMentionedMe().toString());
-		settingsEl.addElement("postOnMyChannel").setText(
-				notificationSettings.getPostOnMyChannel().toString());
-		settingsEl.addElement("postOnSubscribedChannel").setText(
-				notificationSettings.getPostOnSubscribedChannel().toString());
-		settingsEl.addElement("followMyChannel").setText(
-				notificationSettings.getFollowedMyChannel().toString());
-		settingsEl.addElement("followRequest").setText(
-				notificationSettings.getFollowRequest().toString());
 	}
 }

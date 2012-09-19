@@ -23,7 +23,6 @@ import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.email.EmailPusher;
-import com.buddycloud.pusher.utils.Configuration;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -73,10 +72,6 @@ public abstract class AbstractQueryHandler implements QueryHandler {
 	 */
 	@Override
 	public IQ handle(IQ query) {
-		String expectedChannelServer = (String) properties.get(Configuration.CHANNEL_SERVER);
-		if (!query.getFrom().toBareJID().equals(expectedChannelServer)) {
-			return XMPPUtils.error(query, "You are not allowed to sign up users.", logger);
-		}
 		return handleQuery(query);
 	}
 
