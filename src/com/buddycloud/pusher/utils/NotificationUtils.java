@@ -174,20 +174,21 @@ public class NotificationUtils {
 		if (notificationSettings == null) {
 			return;
 		}
-		settingsEl.addElement("email").setText(
-				notificationSettings.getEmail());
-		settingsEl.addElement("postAfterMe").setText(
-				notificationSettings.getPostAfterMe().toString());
-		settingsEl.addElement("postMentionedMe").setText(
-				notificationSettings.getPostMentionedMe().toString());
-		settingsEl.addElement("postOnMyChannel").setText(
-				notificationSettings.getPostOnMyChannel().toString());
-		settingsEl.addElement("postOnSubscribedChannel").setText(
-				notificationSettings.getPostOnSubscribedChannel().toString());
-		settingsEl.addElement("followMyChannel").setText(
-				notificationSettings.getFollowedMyChannel().toString());
-		settingsEl.addElement("followRequest").setText(
-				notificationSettings.getFollowRequest().toString());
+		setText(settingsEl, "email", notificationSettings.getEmail());
+		setText(settingsEl, "postAfterMe", notificationSettings.getPostAfterMe());
+		setText(settingsEl, "postMentionedMe", notificationSettings.getPostMentionedMe());
+		setText(settingsEl, "postOnMyChannel", notificationSettings.getPostOnMyChannel());
+		setText(settingsEl, "postOnSubscribedChannel", 
+				notificationSettings.getPostOnSubscribedChannel());
+		setText(settingsEl, "followMyChannel", notificationSettings.getFollowedMyChannel());
+		setText(settingsEl, "followRequest", notificationSettings.getFollowRequest());
+	}
+	
+	private static void setText(Element rootEl, String property, Object text) {
+		if (text == null) {
+			return;
+		}
+		rootEl.addElement(property).setText(text.toString());
 	}
 
 	public static NotificationSettings fromXML(Element settingsEl) {
