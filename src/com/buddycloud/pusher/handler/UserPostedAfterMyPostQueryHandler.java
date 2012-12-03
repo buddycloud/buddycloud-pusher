@@ -54,7 +54,7 @@ public class UserPostedAfterMyPostQueryHandler extends AbstractQueryHandler {
 		Element queryElement = iq.getElement().element("query");
 		Element jidElement = queryElement.element("userJid");
 		Element channelElement = queryElement.element("channel");
-		Element channelOwnerElement = queryElement.element("channelOwnerJid");
+		Element channelOwnerElement = queryElement.element("referencedJid");
 		Element postContentElement = queryElement.element("postContent");
 		
 		if (jidElement == null || channelElement == null || channelOwnerElement == null) {
