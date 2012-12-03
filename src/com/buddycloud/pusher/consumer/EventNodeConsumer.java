@@ -39,6 +39,10 @@ public class EventNodeConsumer {
 			PubSubManager manager) {
 		String pusherJid = configuration.getProperty("consumer.pusherJid");
 		consumers.add(new UserFollowedConsumer(manager, xmppConnection, pusherJid));
+		consumers.add(new UserPostedAfterMyPostConsumer(manager, xmppConnection, pusherJid));
+		consumers.add(new UserPostedMentionConsumer(manager, xmppConnection, pusherJid));
+		consumers.add(new UserPostedOnMyChannelConsumer(manager, xmppConnection, pusherJid));
+		consumers.add(new UserPostedOnSubscribedChannelConsumer(manager, xmppConnection, pusherJid));
 	}
 
 	private ItemEventListener<Item> createEventListener(final PubSubManager manager) {
