@@ -33,7 +33,7 @@ import com.buddycloud.pusher.utils.XMPPUtils;
  *
  */
 public class UserPostedAfterMyPostQueryHandler extends AbstractQueryHandler {
-
+	
 	private static final String NAMESPACE = "http://buddycloud.com/pusher/userposted-aftermypost";
 	private static final String USERPOSTED_TEMPLATE = "userposted-aftermypost.tpl";
 	
@@ -52,33 +52,38 @@ public class UserPostedAfterMyPostQueryHandler extends AbstractQueryHandler {
 	@Override
 	protected IQ handleQuery(IQ iq) {
 		Element queryElement = iq.getElement().element("query");
-		Element jidElement = queryElement.element("userJid");
+		Element authorElement = queryElement.element("authorJid");
+		Element referencedElement = queryElement.element("referencedJid");
 		Element channelElement = queryElement.element("channel");
-		Element channelOwnerElement = queryElement.element("referencedJid");
 		Element postContentElement = queryElement.element("postContent");
 		
-		if (jidElement == null || channelElement == null || channelOwnerElement == null) {
+		if (authorElement == null || channelElement == null || referencedElement == null) {
 			return XMPPUtils.error(iq,
-					"You must provide the userJid, the channel and the channelOwner", getLogger());
+					"You must provide the authorJid, the channel and the referencedJid", getLogger());
 		}
 		
-		String userJid = jidElement.getText();
-		String ownerJid = channelOwnerElement.getText();
-		String ownerEmail = UserUtils.getUserEmail(ownerJid, getDataSource());
+		String authorJid = authorElement.getText();
+		String referencedJid = referencedElement.getText();
+		String referencedEmail = UserUtils.getUserEmail(referencedJid, getDataSource());
+		if (referencedEmail == null) {
+			return XMPPUtils.error(iq,
+					"User " + referencedJid + " did not provide an email.", getLogger());
+		}
+		
 		String channelJid = channelElement.getText();
 		String postContent = postContentElement.getText();
 		
 		Map<String, String> tokens = new HashMap<String, String>();
-		tokens.put("FIRST_PART_JID", userJid.split("@")[0]);
-		tokens.put("FIRST_PART_OWNER_JID", ownerJid.split("@")[0]);
+		tokens.put("AUTHOR_JID", authorJid);
+		tokens.put("REFERENCED_JID", referencedJid);
 		tokens.put("CHANNEL_JID", channelJid);
 		tokens.put("CONTENT", postContent);
-		tokens.put("EMAIL", ownerEmail);
+		tokens.put("EMAIL", referencedEmail);
 		
 		Email email = getEmailPusher().createEmail(tokens, USERPOSTED_TEMPLATE);
 		getEmailPusher().push(email);
 		
-		return createResponse(iq, "User [" + userJid + "] has posted on channel [" + 
-				channelJid + "] after [" + ownerJid + "] post.");
+		return createResponse(iq, "User [" + authorJid + "] has posted on channel [" + 
+				channelJid + "] after [" + referencedJid + "] post.");
 	}
 }

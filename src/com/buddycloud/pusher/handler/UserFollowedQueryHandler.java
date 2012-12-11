@@ -52,29 +52,34 @@ public class UserFollowedQueryHandler extends AbstractQueryHandler {
 	@Override
 	protected IQ handleQuery(IQ iq) {
 		Element queryElement = iq.getElement().element("query");
-		Element jidElement = queryElement.element("userJid");
+		Element followerJidElement = queryElement.element("followerJid");
 		Element channelElement = queryElement.element("channel");
-		Element channelOwnerElement = queryElement.element("channelOwnerJid");
+		Element ownerJidElement = queryElement.element("ownerJid");
 		
-		if (jidElement == null || channelElement == null || channelOwnerElement == null) {
+		if (followerJidElement == null || channelElement == null || ownerJidElement == null) {
 			return XMPPUtils.error(iq,
 					"You must provide the userJid, the channel and the channelOwner", getLogger());
 		}
 		
-		String userJid = jidElement.getText();
-		String ownerJid = channelOwnerElement.getText();
+		String followerJid = followerJidElement.getText();
+		String ownerJid = ownerJidElement.getText();
 		String ownerEmail = UserUtils.getUserEmail(ownerJid, getDataSource());
+		if (ownerEmail == null) {
+			return XMPPUtils.error(iq,
+					"User " + ownerJid + " did not provide an email.", getLogger());
+		}
+		
 		String channelJid = channelElement.getText();
 		
 		Map<String, String> tokens = new HashMap<String, String>();
-		tokens.put("FIRST_PART_JID", userJid.split("@")[0]);
-		tokens.put("FIRST_PART_OWNER_JID", ownerJid.split("@")[0]);
+		tokens.put("FOLLOWER_JID", followerJid);
+		tokens.put("OWNER_JID", ownerJid);
 		tokens.put("CHANNEL_JID", channelJid);
 		tokens.put("EMAIL", ownerEmail);
 		
 		Email email = getEmailPusher().createEmail(tokens, USERFOLLOWED_TEMPLATE);
 		getEmailPusher().push(email);
 		
-		return createResponse(iq, "User [" + userJid + "] has followed channel [" + channelJid + "].");
+		return createResponse(iq, "User [" + followerJid + "] has followed channel [" + channelJid + "].");
 	}
 }

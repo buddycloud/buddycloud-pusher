@@ -52,25 +52,30 @@ public class UserPostedOnMyChannelQueryHandler extends AbstractQueryHandler {
 	@Override
 	protected IQ handleQuery(IQ iq) {
 		Element queryElement = iq.getElement().element("query");
-		Element jidElement = queryElement.element("userJid");
+		Element authorJidElement = queryElement.element("authorJid");
+		Element ownerJidElement = queryElement.element("ownerJid");
 		Element channelElement = queryElement.element("channel");
-		Element channelOwnerElement = queryElement.element("channelOwnerJid");
 		Element postContentElement = queryElement.element("postContent");
 		
-		if (jidElement == null || channelElement == null || channelOwnerElement == null) {
+		if (authorJidElement == null || channelElement == null || ownerJidElement == null) {
 			return XMPPUtils.error(iq,
 					"You must provide the userJid, the channel and the channelOwner", getLogger());
 		}
 		
-		String userJid = jidElement.getText();
-		String ownerJid = channelOwnerElement.getText();
+		String authorJid = authorJidElement.getText();
+		String ownerJid = ownerJidElement.getText();
 		String ownerEmail = UserUtils.getUserEmail(ownerJid, getDataSource());
+		if (ownerEmail == null) {
+			return XMPPUtils.error(iq,
+					"User " + ownerJid + " did not provide an email.", getLogger());
+		}
+		
 		String channelJid = channelElement.getText();
 		String postContent = postContentElement.getText();
 		
 		Map<String, String> tokens = new HashMap<String, String>();
-		tokens.put("FIRST_PART_JID", userJid.split("@")[0]);
-		tokens.put("FIRST_PART_OWNER_JID", ownerJid.split("@")[0]);
+		tokens.put("AUTHOR_JID", authorJid);
+		tokens.put("OWNER_JID", ownerJid);
 		tokens.put("CHANNEL_JID", channelJid);
 		tokens.put("CONTENT", postContent);
 		tokens.put("EMAIL", ownerEmail);
@@ -78,6 +83,6 @@ public class UserPostedOnMyChannelQueryHandler extends AbstractQueryHandler {
 		Email email = getEmailPusher().createEmail(tokens, USERPOSTED_TEMPLATE);
 		getEmailPusher().push(email);
 		
-		return createResponse(iq, "User [" + userJid + "] has posted on channel [" + channelJid + "].");
+		return createResponse(iq, "User [" + authorJid + "] has posted on channel [" + channelJid + "].");
 	}
 }

@@ -43,6 +43,8 @@ import com.buddycloud.pusher.utils.Configuration;
 public class EmailPusher implements Pusher<Email> {
 
 	private static final Logger LOGGER = Logger.getLogger(EmailPusher.class);
+	private static final String TEMPLATE_PREFIX = "mail.template.";
+	
 	private final Properties properties;
 	private Map<String, String> defaultTokens;
 	private ConcurrentLinkedQueue<Email> emailsToSend = new ConcurrentLinkedQueue<Email>();
@@ -60,7 +62,7 @@ public class EmailPusher implements Pusher<Email> {
 	 */
 	public void start() {
 		ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(10);
-		threadPool.scheduleAtFixedRate(createPusherRunnable(), 0, 1, TimeUnit.MINUTES);
+		threadPool.scheduleAtFixedRate(createPusherRunnable(), 0, 30, TimeUnit.SECONDS);
 	}
 	
 	/**
@@ -81,6 +83,7 @@ public class EmailPusher implements Pusher<Email> {
 					try {
 						send(email, session);
 					} catch (MessagingException e) {
+						emailsToSend.offer(email);
 						LOGGER.error(e);
 					}
 				}
@@ -122,7 +125,7 @@ public class EmailPusher implements Pusher<Email> {
 		Properties smtpProps = new Properties();
 		for (Object key : properties.keySet()) {
 			String keyStr = (String) key;
-			if (keyStr.startsWith("mail.smtp")) {
+			if (keyStr.startsWith("mail.smtp") || keyStr.startsWith("mail.transport")) {
 				smtpProps.put(key, properties.get(key));
 			}
 		}
@@ -133,8 +136,9 @@ public class EmailPusher implements Pusher<Email> {
 		Map<String, String> mailTemplateTokens = new HashMap<String, String>();
 		for (Object key : properties.keySet()) {
 			String keyStr = (String) key;
-			if (keyStr.startsWith("mail.template")) {
-				mailTemplateTokens.put(keyStr, (String) properties.get(key));
+			if (keyStr.startsWith(TEMPLATE_PREFIX)) {
+				mailTemplateTokens.put(keyStr.substring(TEMPLATE_PREFIX.length()), 
+						((String) properties.get(key)));
 			}
 		}
 		return mailTemplateTokens;

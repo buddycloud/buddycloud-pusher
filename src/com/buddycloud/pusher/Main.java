@@ -53,7 +53,6 @@ public class Main {
 			LOGGER.fatal("Component could not be started.", e);
 		}
 		
-		
 		while (true) {
 			try {
 				Thread.sleep(10000);

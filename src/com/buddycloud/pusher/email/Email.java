@@ -112,7 +112,7 @@ public class Email {
 		StringBuilder content = new StringBuilder();
 		for (String templateLine : readLines) {
 			for (Entry<String, String> tokenEntry : tokens.entrySet()) {
-				templateLine = templateLine.replace("<?" + tokenEntry.getKey() + "?>", tokenEntry.getValue());
+				templateLine = templateLine.replace("<%" + tokenEntry.getKey() + "%>", tokenEntry.getValue());
 			}
 			if (i == FROM_HEADER) {
 				email.setFrom(templateLine);

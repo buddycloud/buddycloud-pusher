@@ -1,14 +1,14 @@
 <%SENDER_EMAIL%>
-<%FIRST_PART_JID%> <<%EMAIL%>>
-<%FIRST_PART_JID%> posted on your channel
-Hello <%FIRST_PART_OWNER_JID%>,
- 
-<%FIRST_PART_JID%> mentioned you in a post on channel <%CHANNEL_JID%>:
-
-<%CONTENT%>
- 
-For help email <%SENDER_EMAIL%>. We’re excited to have you on <%DOMAIN_NAME%>’s buddycloud.
- 
+<%MENTIONED_JID%> <<%EMAIL%>>
+Buddycloud: <%AUTHOR_JID%> mentioned you
+Hello <%MENTIONED_JID%>,
+<br> 
+<%AUTHOR_JID%> mentioned you in a post on channel <%CHANNEL_JID%>:
+<br><br>
+<b><%CONTENT%></b>
+<br><br>
+For help email <%SENDER_EMAIL%>. We're excited to have you on <%DOMAIN_NAME%>'s buddycloud.
+<br>
 <%ADMIN_NAME%>
- 
+<br>
 <a href="<%UNSUBSCRIBE_LINK%>">Never receive these emails again.</a>

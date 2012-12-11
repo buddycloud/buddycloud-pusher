@@ -37,7 +37,7 @@ public class UserUtils {
 			statement = dataSource.prepareStatement(
 					"SELECT email from notification_settings WHERE jid=?", 
 					jid);
-			ResultSet resultSet = statement.getResultSet();
+			ResultSet resultSet = statement.executeQuery();
 			if (resultSet.next()) {
 				return resultSet.getString(1);
 			}

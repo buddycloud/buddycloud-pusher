@@ -52,33 +52,37 @@ public class UserPostedMentionQueryHandler extends AbstractQueryHandler {
 	@Override
 	protected IQ handleQuery(IQ iq) {
 		Element queryElement = iq.getElement().element("query");
-		Element jidElement = queryElement.element("userJid");
+		Element authorJidElement = queryElement.element("authorJid");
 		Element channelElement = queryElement.element("channel");
-		Element mentionedElement = queryElement.element("mentionedJid");
+		Element mentionedJidElement = queryElement.element("mentionedJid");
 		Element postContentElement = queryElement.element("postContent");
 		
-		if (jidElement == null || channelElement == null || mentionedElement == null) {
+		if (authorJidElement == null || channelElement == null || mentionedJidElement == null) {
 			return XMPPUtils.error(iq,
 					"You must provide the userJid, the channel and the channelOwner", getLogger());
 		}
 		
-		String userJid = jidElement.getText();
-		String mentionedJid = mentionedElement.getText();
-		String ownerEmail = UserUtils.getUserEmail(mentionedJid, getDataSource());
+		String authorJid = authorJidElement.getText();
+		String mentionedJid = mentionedJidElement.getText();
+		String mentionedEmail = UserUtils.getUserEmail(mentionedJid, getDataSource());
+		if (mentionedEmail == null) {
+			return XMPPUtils.error(iq,
+					"User " + mentionedJid + " did not provide an email.", getLogger());
+		}
 		String channelJid = channelElement.getText();
 		String postContent = postContentElement.getText();
 		
 		Map<String, String> tokens = new HashMap<String, String>();
-		tokens.put("FIRST_PART_JID", userJid.split("@")[0]);
-		tokens.put("FIRST_PART_OWNER_JID", mentionedJid.split("@")[0]);
+		tokens.put("AUTHOR_JID", authorJid);
+		tokens.put("MENTIONED_JID", mentionedJid);
 		tokens.put("CHANNEL_JID", channelJid);
 		tokens.put("CONTENT", postContent);
-		tokens.put("EMAIL", ownerEmail);
+		tokens.put("EMAIL", mentionedEmail);
 		
 		Email email = getEmailPusher().createEmail(tokens, USERPOSTED_TEMPLATE);
 		getEmailPusher().push(email);
 		
-		return createResponse(iq, "User [" + userJid + "] mentioned [" + mentionedElement + "] " +
+		return createResponse(iq, "User [" + authorJid + "] mentioned [" + mentionedJidElement + "] " +
 				"on channel [" + channelJid + "].");
 	}
 }
