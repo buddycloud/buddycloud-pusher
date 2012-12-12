@@ -61,13 +61,14 @@ public class SignupQueryHandler extends AbstractQueryHandler {
 					"You must provide the jid and the email", getLogger());
 		}
 		
-		String jid = jidElement.getText();
+		String fullJid = jidElement.getText();
 		String emailAddress = emailElement.getText();
 		
+		String jid = fullJid.split("/")[0];
 		insertSubscriber(jid, emailAddress);
 		
 		Map<String, String> tokens = new HashMap<String, String>();
-		tokens.put("FIRST_PART_JID", jid.split("@")[0]);
+		tokens.put("NEW_USER_JID", jid);
 		tokens.put("EMAIL", emailAddress);
 		
 		Email email = getEmailPusher().createEmail(tokens, WELCOME_TEMPLATE);
