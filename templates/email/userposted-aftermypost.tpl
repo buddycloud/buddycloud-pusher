@@ -7,7 +7,10 @@ Hello <%REFERENCED_JID%>,
 <br><br>
 <b><%CONTENT%></b>
 <br><br>
-For help email <%SENDER_EMAIL%>. We're excited to have you on <%DOMAIN_NAME%>'s buddycloud.
+What's buddycloud?
+<br> 
+Use buddycloud to share what you are working and media in channels with your friends and co-workers. In one glance, buddycloud channels tells you what's everyone is up to. And let’s you share media in a drag and drop way.
+<br>
 <br>
 <%ADMIN_NAME%>
 <br>
