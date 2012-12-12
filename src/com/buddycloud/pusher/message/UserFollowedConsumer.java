@@ -19,7 +19,7 @@ public class UserFollowedConsumer extends AbstractMessageConsumer {
 	}
 
 	@Override
-	public void consume(Message message) {
+	public void consume(Message message, List<String> recipients) {
 	
 		Element eventEl = message.getChildElement("event", ConsumerUtils.PUBSUB_EVENT_NS);
 		Element subscriptionEl = eventEl.element("subscription");
@@ -40,14 +40,21 @@ public class UserFollowedConsumer extends AbstractMessageConsumer {
 		}
 		
 		for (Affiliation owner : owners) {
-			newFollower(owner.getJid(), followerJid, channelJid);
+			newFollower(owner.getJid(), followerJid, channelJid, recipients);
 		}
 	}
 
-	private void newFollower(String ownerJid, String followerJid, String channelJid) {
+	private void newFollower(String ownerJid, String followerJid, String channelJid, List<String> recipients) {
+		if (ownerJid.equals(followerJid) || recipients.contains(ownerJid)) {
+			return;
+		}
+		
 		IQ iq = createIq(ownerJid, followerJid, channelJid);
 		try {
-			getXmppComponent().handleIQLoopback(iq);
+			IQ iqResponse = getXmppComponent().handleIQLoopback(iq);
+			if (iqResponse.getError() == null) {
+				recipients.add(ownerJid);
+			}
 		} catch (Exception e) {
 			LOGGER.warn(e);
 		}
@@ -59,7 +66,7 @@ public class UserFollowedConsumer extends AbstractMessageConsumer {
 				"http://buddycloud.com/pusher/userfollowed");
 		queryEl.addElement("followerJid").setText(followerJid);
 		queryEl.addElement("ownerJid").setText(ownerJid);
-		queryEl.addElement("channel").setText(channelJid);
+		queryEl.addElement("channel").setText(ConsumerUtils.getChannelAddress(channelJid));
         return iq;
 	}
 	

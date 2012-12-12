@@ -22,10 +22,11 @@ import java.util.Properties;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
+import com.buddycloud.pusher.NotificationSettings;
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.email.Email;
 import com.buddycloud.pusher.email.EmailPusher;
-import com.buddycloud.pusher.utils.UserUtils;
+import com.buddycloud.pusher.utils.NotificationUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -64,10 +65,22 @@ public class UserPostedOnSubscribedChannelQueryHandler extends AbstractQueryHand
 		
 		String authorJid = authorJidElement.getText();
 		String followerJid = followerJidElement.getText();
-		String followerEmail = UserUtils.getUserEmail(followerJid, getDataSource());
+		NotificationSettings notificationSettings = NotificationUtils.getNotificationSettings(
+				followerJid, getDataSource());
+		if (notificationSettings == null) {
+			return XMPPUtils.error(iq,
+					"User " + followerJid + " is not registered.");
+		}
+		
+		String followerEmail = notificationSettings.getEmail();
 		if (followerEmail == null) {
 			return XMPPUtils.error(iq,
-					"User " + followerJid + " did not provide an email.", getLogger());
+					"User " + followerJid + " has no email registered.");
+		}
+		
+		if (!notificationSettings.getPostOnMyChannel()) {
+			return XMPPUtils.error(iq,
+					"User " + followerJid + " won't receive post on following channels notifications.");
 		}
 		
 		String channelJid = channelElement.getText();
@@ -76,6 +89,7 @@ public class UserPostedOnSubscribedChannelQueryHandler extends AbstractQueryHand
 		Map<String, String> tokens = new HashMap<String, String>();
 		tokens.put("AUTHOR_JID", authorJid);
 		tokens.put("FOLLOWER_JID", followerJid);
+		
 		tokens.put("CHANNEL_JID", channelJid);
 		tokens.put("CONTENT", postContent);
 		tokens.put("EMAIL", followerEmail);

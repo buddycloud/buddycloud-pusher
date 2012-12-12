@@ -35,6 +35,10 @@ public class XMPPUtils {
 	 */
 	public static IQ error(IQ iq, String errorMessage, Logger logger) {
 		logger.error(errorMessage);
+		return error(iq, errorMessage);
+	}
+	
+	public static IQ error(IQ iq, String errorMessage) {
 		return XMPPUtils.createErrorResponse(iq, errorMessage, 
 				Condition.bad_request, Type.modify);
 	}

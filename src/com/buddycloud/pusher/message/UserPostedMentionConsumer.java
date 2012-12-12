@@ -1,5 +1,6 @@
 package com.buddycloud.pusher.message;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,7 +21,7 @@ public class UserPostedMentionConsumer extends AbstractMessageConsumer {
 	}
 
 	@Override
-	public void consume(Message message) {
+	public void consume(Message message, List<String> recipients) {
 		
 		Element eventEl = message.getChildElement("event", ConsumerUtils.PUBSUB_EVENT_NS);
 		Element itemsEl = eventEl.element("items");
@@ -32,15 +33,22 @@ public class UserPostedMentionConsumer extends AbstractMessageConsumer {
 		Matcher matcher = JID_REGEX.matcher(entry.getContent());
 		while (matcher.find()) {
 			String mentionedJid = matcher.group();
-			newMention(mentionedJid, entry);
+			newMention(mentionedJid, entry, recipients);
 		}
 	}
 	
-	private void newMention(String mentionedJid, AtomEntry entry) {
+	private void newMention(String mentionedJid, AtomEntry entry, List<String> recipients) {
+		if (mentionedJid.equals(entry.getAuthor()) || recipients.contains(mentionedJid)) {
+			return;
+		}
+		
 		IQ iq = createIq(entry.getAuthor(), mentionedJid, 
 				entry.getNode(), entry.getContent());
 		try {
-			getXmppComponent().handleIQLoopback(iq);
+			IQ iqResponse = getXmppComponent().handleIQLoopback(iq);
+			if (iqResponse.getError() == null) {
+				recipients.add(mentionedJid);
+			}
 		} catch (Exception e) {
 			LOGGER.warn(e);
 		}
@@ -53,7 +61,7 @@ public class UserPostedMentionConsumer extends AbstractMessageConsumer {
 				"http://buddycloud.com/pusher/userposted-mention");
 		queryEl.addElement("authorJid").setText(authorJid);
 		queryEl.addElement("mentionedJid").setText(mentionedJid);
-		queryEl.addElement("channel").setText(channelJid);
+		queryEl.addElement("channel").setText(ConsumerUtils.getChannelAddress(channelJid));
 		queryEl.addElement("postContent").setText(content);
         return iq;
 	}

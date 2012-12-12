@@ -22,10 +22,11 @@ import java.util.Properties;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
+import com.buddycloud.pusher.NotificationSettings;
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.email.Email;
 import com.buddycloud.pusher.email.EmailPusher;
-import com.buddycloud.pusher.utils.UserUtils;
+import com.buddycloud.pusher.utils.NotificationUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -59,15 +60,28 @@ public class UserPostedAfterMyPostQueryHandler extends AbstractQueryHandler {
 		
 		if (authorElement == null || channelElement == null || referencedElement == null) {
 			return XMPPUtils.error(iq,
-					"You must provide the authorJid, the channel and the referencedJid", getLogger());
+					"You must provide the authorJid, the channel and the referencedJid");
 		}
 		
 		String authorJid = authorElement.getText();
 		String referencedJid = referencedElement.getText();
-		String referencedEmail = UserUtils.getUserEmail(referencedJid, getDataSource());
+		
+		NotificationSettings notificationSettings = NotificationUtils.getNotificationSettings(
+				referencedJid, getDataSource());
+		if (notificationSettings == null) {
+			return XMPPUtils.error(iq,
+					"User " + referencedJid + " is not registered.");
+		}
+		
+		String referencedEmail = notificationSettings.getEmail();
 		if (referencedEmail == null) {
 			return XMPPUtils.error(iq,
-					"User " + referencedJid + " did not provide an email.", getLogger());
+					"User " + referencedJid + " has no email registered.");
+		}
+		
+		if (!notificationSettings.getPostAfterMe()) {
+			return XMPPUtils.error(iq,
+					"User " + referencedJid + " won't receive comment notifications.");
 		}
 		
 		String channelJid = channelElement.getText();

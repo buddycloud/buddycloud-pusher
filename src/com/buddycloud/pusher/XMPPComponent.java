@@ -73,9 +73,9 @@ public class XMPPComponent extends AbstractComponent {
 		addHandler(new GetNotificationSettingsQueryHandler(configuration, dataSource, emailPusher), queryGetHandlers);
 		// Set handlers
 		addHandler(new SetNotificationSettingsQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
+		addHandler(new SignupQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
 		// Loopback handlers
 		addHandler(new FollowRequestQueryHandler(configuration, dataSource, emailPusher), loHandlers);
-		addHandler(new SignupQueryHandler(configuration, dataSource, emailPusher), loHandlers);
 		addHandler(new DeleteUserQueryHandler(configuration, dataSource, emailPusher), loHandlers);
 		addHandler(new UserFollowedQueryHandler(configuration, dataSource, emailPusher), loHandlers);
 		addHandler(new UserPostedAfterMyPostQueryHandler(configuration, dataSource, emailPusher), loHandlers);
@@ -103,8 +103,8 @@ public class XMPPComponent extends AbstractComponent {
 		return handle(iq, queryGetHandlers);
 	}
 	
-	public void handleIQLoopback(IQ iq) throws Exception {
-		handle(iq, loHandlers);
+	public IQ handleIQLoopback(IQ iq) throws Exception {
+		return handle(iq, loHandlers);
 	}
 	
 	@Override

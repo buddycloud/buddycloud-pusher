@@ -1,5 +1,7 @@
 package com.buddycloud.pusher.message;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
@@ -16,7 +18,7 @@ public class UserPostedAfterMyPostConsumer extends AbstractMessageConsumer {
 	}
 
 	@Override
-	public void consume(Message message) {
+	public void consume(Message message, List<String> recipients) {
 		
 		Element eventEl = message.getChildElement("event", ConsumerUtils.PUBSUB_EVENT_NS);
 		Element itemsEl = eventEl.element("items");
@@ -39,14 +41,22 @@ public class UserPostedAfterMyPostConsumer extends AbstractMessageConsumer {
 		
 		AtomEntry refEntry = AtomEntry.parse(replyItemsEl);
 		postAfterMe(entry.getAuthor(), refEntry.getAuthor(), 
-				entry.getNode(), entry.getContent());
+				entry.getNode(), entry.getContent(), recipients);
 	}
 	
-	private void postAfterMe(String authorJid, String authorRefJid, 
-			String channelJid, String content) {
-		IQ iq = createIq(authorJid, authorRefJid, channelJid, content);
+	private void postAfterMe(String authorJid, String referencedJid, 
+			String channelJid, String content, List<String> recipients) {
+		
+		if (authorJid.equals(referencedJid) || recipients.contains(referencedJid)) {
+			return;
+		}
+		
+		IQ iq = createIq(authorJid, referencedJid, channelJid, content);
 		try {
-			getXmppComponent().handleIQLoopback(iq);
+			IQ iqResponse = getXmppComponent().handleIQLoopback(iq);
+			if (iqResponse.getError() == null) {
+				recipients.add(referencedJid);
+			}
 		} catch (Exception e) {
 			LOGGER.warn(e);
 		}
@@ -59,7 +69,7 @@ public class UserPostedAfterMyPostConsumer extends AbstractMessageConsumer {
 				"http://buddycloud.com/pusher/userposted-aftermypost");
 		queryEl.addElement("authorJid").setText(authorJid);
 		queryEl.addElement("referencedJid").setText(authorRefJid);
-		queryEl.addElement("channel").setText(channelJid);
+		queryEl.addElement("channel").setText(ConsumerUtils.getChannelAddress(channelJid));
 		queryEl.addElement("postContent").setText(content);
         return iq;
 	}

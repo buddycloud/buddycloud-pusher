@@ -22,10 +22,11 @@ import java.util.Properties;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
+import com.buddycloud.pusher.NotificationSettings;
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.email.Email;
 import com.buddycloud.pusher.email.EmailPusher;
-import com.buddycloud.pusher.utils.UserUtils;
+import com.buddycloud.pusher.utils.NotificationUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -64,10 +65,22 @@ public class UserPostedOnMyChannelQueryHandler extends AbstractQueryHandler {
 		
 		String authorJid = authorJidElement.getText();
 		String ownerJid = ownerJidElement.getText();
-		String ownerEmail = UserUtils.getUserEmail(ownerJid, getDataSource());
+		NotificationSettings notificationSettings = NotificationUtils.getNotificationSettings(
+				ownerJid, getDataSource());
+		if (notificationSettings == null) {
+			return XMPPUtils.error(iq,
+					"User " + ownerJid + " is not registered.");
+		}
+		
+		String ownerEmail = notificationSettings.getEmail();
 		if (ownerEmail == null) {
 			return XMPPUtils.error(iq,
-					"User " + ownerJid + " did not provide an email.", getLogger());
+					"User " + ownerJid + " has no email registered.");
+		}
+		
+		if (!notificationSettings.getPostOnMyChannel()) {
+			return XMPPUtils.error(iq,
+					"User " + ownerJid + " won't receive post on own channels notifications.");
 		}
 		
 		String channelJid = channelElement.getText();

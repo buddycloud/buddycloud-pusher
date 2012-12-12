@@ -22,10 +22,11 @@ import java.util.Properties;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
+import com.buddycloud.pusher.NotificationSettings;
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.email.Email;
 import com.buddycloud.pusher.email.EmailPusher;
-import com.buddycloud.pusher.utils.UserUtils;
+import com.buddycloud.pusher.utils.NotificationUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -64,11 +65,24 @@ public class UserPostedMentionQueryHandler extends AbstractQueryHandler {
 		
 		String authorJid = authorJidElement.getText();
 		String mentionedJid = mentionedJidElement.getText();
-		String mentionedEmail = UserUtils.getUserEmail(mentionedJid, getDataSource());
+		NotificationSettings notificationSettings = NotificationUtils.getNotificationSettings(
+				mentionedJid, getDataSource());
+		if (notificationSettings == null) {
+			return XMPPUtils.error(iq,
+					"User " + mentionedJid + " is not registered.");
+		}
+		
+		String mentionedEmail = notificationSettings.getEmail();
 		if (mentionedEmail == null) {
 			return XMPPUtils.error(iq,
-					"User " + mentionedJid + " did not provide an email.", getLogger());
+					"User " + mentionedJid + " has no email registered.");
 		}
+		
+		if (!notificationSettings.getPostMentionedMe()) {
+			return XMPPUtils.error(iq,
+					"User " + mentionedJid + " won't receive mention notifications.");
+		}
+		
 		String channelJid = channelElement.getText();
 		String postContent = postContentElement.getText();
 		

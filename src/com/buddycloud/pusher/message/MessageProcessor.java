@@ -18,16 +18,20 @@ public class MessageProcessor implements MessageConsumer {
 	}
 	
 	private void initConsumers() {
-		consumers.add(new UserFollowedConsumer(component));
-		consumers.add(new UserPostedAfterMyPostConsumer(component));
 		consumers.add(new UserPostedMentionConsumer(component));
+		consumers.add(new UserPostedAfterMyPostConsumer(component));
 		consumers.add(new UserPostedOnMyChannelConsumer(component));
 		consumers.add(new UserPostedOnSubscribedChannelConsumer(component));
+		consumers.add(new UserFollowedConsumer(component));
 	}
 
 	public void consume(Message message) {
+		consume(message, new LinkedList<String>());
+	}
+	
+	public void consume(Message message, List<String> recipient) {
 		for (MessageConsumer itemConsumer : consumers) {
-			itemConsumer.consume(message);
+			itemConsumer.consume(message, recipient);
 		}
 	}
 }

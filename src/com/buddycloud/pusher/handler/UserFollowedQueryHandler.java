@@ -22,10 +22,11 @@ import java.util.Properties;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
+import com.buddycloud.pusher.NotificationSettings;
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.email.Email;
 import com.buddycloud.pusher.email.EmailPusher;
-import com.buddycloud.pusher.utils.UserUtils;
+import com.buddycloud.pusher.utils.NotificationUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -58,15 +59,28 @@ public class UserFollowedQueryHandler extends AbstractQueryHandler {
 		
 		if (followerJidElement == null || channelElement == null || ownerJidElement == null) {
 			return XMPPUtils.error(iq,
-					"You must provide the userJid, the channel and the channelOwner", getLogger());
+					"You must provide the userJid, the channel and the channelOwner");
 		}
 		
 		String followerJid = followerJidElement.getText();
 		String ownerJid = ownerJidElement.getText();
-		String ownerEmail = UserUtils.getUserEmail(ownerJid, getDataSource());
+		
+		NotificationSettings notificationSettings = NotificationUtils.getNotificationSettings(
+				ownerJid, getDataSource());
+		if (notificationSettings == null) {
+			return XMPPUtils.error(iq,
+					"User " + ownerJid + " is not registered.");
+		}
+		
+		String ownerEmail = notificationSettings.getEmail();
 		if (ownerEmail == null) {
 			return XMPPUtils.error(iq,
-					"User " + ownerJid + " did not provide an email.", getLogger());
+					"User " + ownerJid + " has no email registered.");
+		}
+		
+		if (!notificationSettings.getFollowedMyChannel()) {
+			return XMPPUtils.error(iq,
+					"User " + ownerJid + " won't receive follow notifications.");
 		}
 		
 		String channelJid = channelElement.getText();
