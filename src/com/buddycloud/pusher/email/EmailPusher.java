@@ -82,6 +82,7 @@ public class EmailPusher implements Pusher<Email> {
 					}
 					try {
 						send(email, session);
+						LOGGER.trace("Sending out email to " + email.getTo());
 					} catch (MessagingException e) {
 						emailsToSend.offer(email);
 						LOGGER.error(e);
@@ -112,12 +113,20 @@ public class EmailPusher implements Pusher<Email> {
 		final String password = properties.getProperty(Configuration.MAIL_PASSWORD);
 		Properties smtpProps = getSMTPProperties();
 
-		Session session = Session.getInstance(smtpProps,
-				new javax.mail.Authenticator() {
-					protected PasswordAuthentication getPasswordAuthentication() {
-						return new PasswordAuthentication(username, password);
-					}
-				});
+		String useAuthStr = properties.getProperty("mail.smtp.auth");
+		
+		Session session = null;
+		if (Boolean.valueOf(useAuthStr)) {
+			session = Session.getInstance(smtpProps,
+					new javax.mail.Authenticator() {
+				protected PasswordAuthentication getPasswordAuthentication() {
+					return new PasswordAuthentication(username, password);
+				}
+			});
+		} else {
+			session = Session.getInstance(smtpProps);
+		}
+		
 		return session;
 	}
 

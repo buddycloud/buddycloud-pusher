@@ -19,7 +19,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
 import com.buddycloud.pusher.NotificationSettings;
@@ -31,6 +34,27 @@ import com.buddycloud.pusher.db.DataSource;
  */
 public class NotificationUtils {
 
+	private static final Logger LOGGER = Logger.getLogger(NotificationUtils.class);
+	
+	public static List<String> getAllUsers(DataSource dataSource) {
+		PreparedStatement statement = null;
+		try {
+			statement = dataSource.prepareStatement(
+					"SELECT jid FROM notification_settings");
+			ResultSet resultSet = statement.executeQuery();
+			List<String> jids = new LinkedList<String>();
+			while (resultSet.next()) {
+				jids.add(resultSet.getString("jid"));
+			}
+			return jids;
+		} catch (SQLException e) {
+			LOGGER.error("Could not retrieve users.", e);
+			throw new RuntimeException(e);
+		} finally {
+			DataSource.close(statement);
+		}
+	}
+	
 	public static NotificationSettings getNotificationSettings(String jid, DataSource dataSource) {
 		PreparedStatement statement = null;
 		try {
@@ -40,6 +64,7 @@ public class NotificationUtils {
 			ResultSet resultSet = statement.executeQuery();
 			if (resultSet.next()) {
 				NotificationSettings notificationSettings = new NotificationSettings();
+				notificationSettings.setJid(resultSet.getString("jid"));
 				notificationSettings.setEmail(resultSet.getString("email"));
 				notificationSettings.setPostAfterMe(resultSet.getBoolean("post_after_me"));
 				notificationSettings.setPostMentionedMe(resultSet.getBoolean("post_mentioned_me"));
@@ -51,7 +76,7 @@ public class NotificationUtils {
 			}
 			return null;
 		} catch (SQLException e) {
-			UserUtils.LOGGER.error("Could not get notification settings from user [" + jid + "].", e);
+			LOGGER.error("Could not get notification settings from user [" + jid + "].", e);
 			throw new RuntimeException(e);
 		} finally {
 			DataSource.close(statement);
@@ -96,12 +121,12 @@ public class NotificationUtils {
 			
 			return updatedNotificationsSettings;
 		} catch (SQLException e) {
-			UserUtils.LOGGER.error("Could not update notification settings from user [" + jid + "].", e);
+			LOGGER.error("Could not update notification settings from user [" + jid + "].", e);
 			if (connection != null) {
 				try {
 					connection.rollback();
 				} catch (SQLException e1) {
-					UserUtils.LOGGER.error("Could not rollback update notification settings operation.", e1);
+					LOGGER.error("Could not rollback update notification settings operation.", e1);
 				}
 			}
 			throw new RuntimeException(e);
@@ -110,20 +135,20 @@ public class NotificationUtils {
 				try {
 					deleteStatement.close();
 				} catch (SQLException e) {
-					UserUtils.LOGGER.error(e);
+					LOGGER.error(e);
 				}
 			}
 			if (insertStatement != null) {
 				try {
 					insertStatement.close();
 				} catch (SQLException e) {
-					UserUtils.LOGGER.error(e);
+					LOGGER.error(e);
 				}
 			}
 			try {
 				connection.close();
 			} catch (SQLException e) {
-				UserUtils.LOGGER.error(e);
+				LOGGER.error(e);
 			}
 		}
 	}
