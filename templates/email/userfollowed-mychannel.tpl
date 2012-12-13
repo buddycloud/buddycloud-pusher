@@ -1,6 +1,6 @@
 <%SENDER_EMAIL%>
 <%OWNER_JID%> <<%EMAIL%>>
-Buddycloud: <%FOLLOWER_JID%> started following your channel
+buddycloud: <%FOLLOWER_JID%> started following your channel
 Hello <a href="<%WEB_CLIENT_URL%>/<%OWNER_JID%>"><%OWNER_JID%></a>,
 <br> 
 <a href="<%WEB_CLIENT_URL%>/<%FOLLOWER_JID%>"><%FOLLOWER_JID%></a> started following your channel <a href="<%WEB_CLIENT_URL%>/<%CHANNEL_JID%>"><%CHANNEL_JID%></a>.
