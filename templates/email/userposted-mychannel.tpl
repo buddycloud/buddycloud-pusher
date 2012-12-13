@@ -1,6 +1,6 @@
 <%SENDER_EMAIL%>
 <%OWNER_JID%> <<%EMAIL%>>
-Buddycloud: <%AUTHOR_JID%> posted on your channel
+buddycloud: <%AUTHOR_JID%> posted on your channel
 Hello <a href="<%WEB_CLIENT_URL%>/<%OWNER_JID%>"><%OWNER_JID%></a>,
 <br> 
 <a href="<%WEB_CLIENT_URL%>/<%AUTHOR_JID%>"><%AUTHOR_JID%></a> posted on your channel <a href="<%WEB_CLIENT_URL%>/<%CHANNEL_JID%>"><%CHANNEL_JID%></a>:
