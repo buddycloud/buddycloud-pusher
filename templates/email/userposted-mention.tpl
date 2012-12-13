@@ -1,6 +1,6 @@
 <%SENDER_EMAIL%>
 <%MENTIONED_JID%> <<%EMAIL%>>
-Buddycloud: <%AUTHOR_JID%> mentioned you
+buddycloud: <%AUTHOR_JID%> mentioned you
 Hello <a href="<%WEB_CLIENT_URL%>/<%MENTIONED_JID%>"><%MENTIONED_JID%></a>,
 <br> 
 <a href="<%WEB_CLIENT_URL%>/<%AUTHOR_JID%>"><%AUTHOR_JID%></a> mentioned you in a post on channel <a href="<%WEB_CLIENT_URL%>/<%CHANNEL_JID%>"><%CHANNEL_JID%></a>:
