@@ -1,19 +1,19 @@
 <%SENDER_EMAIL%>
 <%NEW_USER_JID%> <<%EMAIL%>>
 Thank you for joining buddycloud
-Hello <%NEW_USER_JID%>,
+Hello <a href="<%WEB_CLIENT_URL%>/<%NEW_USER_JID%>"><%NEW_USER_JID%></a>,
 <br>
 buddycloud is a really useful way to communicate on the topics that you care about. 
 <br> 
-You can always get back to your channel at: https://<%DOMAIN_NAME%>/<%NEW_USER_JID%>
+You can always get back to your channel at: <a href="<%WEB_CLIENT_URL%>/<%NEW_USER_JID%>"><%WEB_CLIENT_URL%>/<%NEW_USER_JID%></a>.
 <br><br>
 Some other channels you might like to follow are: <br>
-lounge@<%TOPICS_DOMAIN_NAME%><br>
-music@<%TOPICS_DOMAIN_NAME%><br>
-new-topics@<%TOPICS_DOMAIN_NAME%><br>
+<a href="<%WEB_CLIENT_URL%>/lounge@<%TOPICS_DOMAIN_NAME%>">lounge@<%TOPICS_DOMAIN_NAME%></a><br>
+<a href="<%WEB_CLIENT_URL%>/music@<%TOPICS_DOMAIN_NAME%>">music@<%TOPICS_DOMAIN_NAME%></a><br>
+<a href="<%WEB_CLIENT_URL%>/topics@<%TOPICS_DOMAIN_NAME%>">topics@<%TOPICS_DOMAIN_NAME%></a><br>
 <br>
-For help email <%SENDER_EMAIL%>. We’re excited to have you on <%DOMAIN_NAME%>’s buddycloud.<br>
-<br> 
+We’re excited to have you on <%DOMAIN_NAME%>’s buddycloud!<br>
+<br>
 <%ADMIN_NAME%><br>
 <br>
-<a href="<%UNSUBSCRIBE_LINK%>">Never receive these emails again.</a>
+You can always change your notification settings in the <a href="<%WEB_CLIENT_URL%>/prefs">preferences page</a>.

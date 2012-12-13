@@ -13,4 +13,4 @@ Use buddycloud to share what you are working and media in channels with your fri
  
 <%ADMIN_NAME%>
  
-<a href="<%UNSUBSCRIBE_LINK%>">Never receive these emails again.</a>
+You can always change your notification settings in the <a href="<%WEB_CLIENT_URL%>/prefs">preferences</a> page.
