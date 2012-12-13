@@ -78,7 +78,7 @@ public class UserPostedOnSubscribedChannelQueryHandler extends AbstractQueryHand
 					"User " + followerJid + " has no email registered.");
 		}
 		
-		if (!notificationSettings.getPostOnMyChannel()) {
+		if (!notificationSettings.getPostOnSubscribedChannel()) {
 			return XMPPUtils.error(iq,
 					"User " + followerJid + " won't receive post on following channels notifications.");
 		}
