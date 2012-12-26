@@ -28,6 +28,11 @@ public class UserFollowedConsumer extends AbstractMessageConsumer {
 			return;
 		}
 		
+		String subscriptionState = subscriptionEl.attributeValue("subscription");
+		if (subscriptionState.equals("none")) {
+			return;
+		}
+		
 		String followerJid = subscriptionEl.attributeValue("jid");
 		String channelJid = subscriptionEl.attributeValue("node");
 		
