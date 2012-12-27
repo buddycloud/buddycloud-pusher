@@ -53,18 +53,16 @@ public class SignupQueryHandler extends AbstractQueryHandler {
 	@Override
 	protected IQ handleQuery(IQ iq) {
 		Element queryElement = iq.getElement().element("query");
-		Element jidElement = queryElement.element("jid");
 		Element emailElement = queryElement.element("email");
 		
-		if (jidElement == null || emailElement == null) {
+		if (emailElement == null) {
 			return XMPPUtils.error(iq,
-					"You must provide the jid and the email", getLogger());
+					"You must provide an email address", getLogger());
 		}
 		
-		String fullJid = jidElement.getText();
+		String jid = iq.getFrom().toBareJID();
 		String emailAddress = emailElement.getText();
 		
-		String jid = fullJid.split("/")[0];
 		insertSubscriber(jid, emailAddress);
 		
 		Map<String, String> tokens = new HashMap<String, String>();

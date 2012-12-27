@@ -19,12 +19,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.email.EmailPusher;
-import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
  * @author Abmar
@@ -48,16 +46,8 @@ public class DeleteUserQueryHandler extends AbstractQueryHandler {
 	 */
 	@Override
 	protected IQ handleQuery(IQ iq) {
-		Element queryElement = iq.getElement().element("query");
-		Element jidElement = queryElement.element("jid");
-		
-		if (jidElement == null) {
-			return XMPPUtils.error(iq, "You must provide the user's jid", getLogger());
-		}
-		
-		String jid = jidElement.getText();
+		String jid = iq.getFrom().toBareJID();
 		deleteSubscriber(jid);
-		
 		return createResponse(iq, "User [" + jid + "] was deleted.");
 	}
 
