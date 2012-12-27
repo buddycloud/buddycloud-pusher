@@ -30,6 +30,10 @@ public class MessageProcessor implements MessageConsumer {
 	}
 	
 	public void consume(Message message, List<String> recipient) {
+		String channelServerJid = component.getProperty("channel.server");
+		if (!message.getFrom().toString().equals(channelServerJid)) {
+			return;
+		}
 		for (MessageConsumer itemConsumer : consumers) {
 			itemConsumer.consume(message, recipient);
 		}
