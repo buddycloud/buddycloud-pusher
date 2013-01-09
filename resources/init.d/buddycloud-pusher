@@ -5,14 +5,14 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="buddycloud pusher"
 NAME="buddycloud-pusher"
-RUNFROM=/opt/buddycloud-pusher
+RUNFROM=usr/share/buddycloudpusher
 DAEMON=/usr/bin/java
 DAEMON_ARGS="-cp .:./*:./lib/* com.buddycloud.pusher.Main"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/buddycloud-pusher
 
 # the user that will run the script
-USER=buddycloudpusher
+USER=buddycloud
 
 # Make sure only root can run our script
 if [ "$(id -u)" != "0" ]; then
