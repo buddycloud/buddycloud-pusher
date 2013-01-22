@@ -46,11 +46,22 @@ public class Main {
 		componentManager.setSecretKey(subdomain, 
 				configuration.getProperty("xmpp.secretkey"));
 		
-		try {
-			componentManager.addComponent(subdomain, 
-					new XMPPComponent(configuration));
-		} catch (ComponentException e) {
-			LOGGER.fatal("Component could not be started.", e);
+		int currentTry = 1;
+
+		while (true) {
+			try {
+				componentManager.addComponent(subdomain, new XMPPComponent(
+						configuration));
+				break;
+			} catch (ComponentException e) {
+				LOGGER.warn("Component could not be started. Try #" + (currentTry++));
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e1) {
+					LOGGER.fatal("Main loop.", e1);
+					return;
+				}
+			}
 		}
 		
 		while (true) {
