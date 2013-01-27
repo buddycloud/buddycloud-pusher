@@ -5,7 +5,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="buddycloud pusher"
 NAME="buddycloud-pusher"
-RUNFROM=usr/share/buddycloudpusher
+RUNFROM=usr/share/buddycloud-pusher
 DAEMON=/usr/bin/java
 DAEMON_ARGS="-cp .:./*:./lib/* com.buddycloud.pusher.Main"
 PIDFILE=/var/run/$NAME.pid
@@ -68,7 +68,7 @@ case "$1" in
                 2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
         esac
         ;;
-  restart)
+  restart|reload|force-reload)
         #
         # If the "reload" option is implemented then remove the
         # 'force-reload' alias
