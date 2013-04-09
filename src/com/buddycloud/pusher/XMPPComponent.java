@@ -18,6 +18,7 @@ import org.xmpp.packet.Message;
 
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.handler.GetNotificationSettingsQueryHandler;
+import com.buddycloud.pusher.handler.GetPusherMetadataQueryHandler;
 import com.buddycloud.pusher.handler.QueryHandler;
 import com.buddycloud.pusher.handler.SetNotificationSettingsQueryHandler;
 import com.buddycloud.pusher.handler.SignupQueryHandler;
@@ -67,6 +68,7 @@ public class XMPPComponent extends AbstractComponent {
 	private void initHandlers() {
 		// Get handlers
 		addHandler(new GetNotificationSettingsQueryHandler(configuration, dataSource), queryGetHandlers);
+		addHandler(new GetPusherMetadataQueryHandler(configuration, dataSource), queryGetHandlers);
 		// Set handlers
 		addHandler(new SetNotificationSettingsQueryHandler(configuration, dataSource), querySetHandlers);
 		addHandler(new SignupQueryHandler(configuration, dataSource), querySetHandlers);

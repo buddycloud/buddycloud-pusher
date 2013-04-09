@@ -199,4 +199,9 @@ public class EmailPusher implements Pusher {
 		}
 		return null;
 	}
+
+	@Override
+	public Map<String, String> getMetadata() {
+		return new HashMap<String, String>();
+	}
 }

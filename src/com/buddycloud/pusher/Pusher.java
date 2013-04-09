@@ -28,4 +28,6 @@ public interface Pusher {
 	
 	void push(String target, Event event, Map<String, String> tokens);
 	
+	Map<String, String> getMetadata();
+	
 }
