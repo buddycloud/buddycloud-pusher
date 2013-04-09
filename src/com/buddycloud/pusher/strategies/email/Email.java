@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.buddycloud.pusher.email;
+package com.buddycloud.pusher.strategies.email;
 
 import java.io.File;
 import java.io.IOException;

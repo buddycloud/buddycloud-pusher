@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import com.buddycloud.pusher.email.EmailPusher;
+import com.buddycloud.pusher.strategies.email.EmailPusher;
+import com.buddycloud.pusher.strategies.gcm.GCMPusher;
 
 public class Pushers {
 
@@ -13,6 +14,7 @@ public class Pushers {
 	
 	public Pushers(Properties properties) {
 		pushers.put(EmailPusher.TYPE, new EmailPusher(properties));
+		pushers.put(GCMPusher.TYPE, new GCMPusher(properties));
 	}
 
 	public static Pushers getInstance(Properties properties) {

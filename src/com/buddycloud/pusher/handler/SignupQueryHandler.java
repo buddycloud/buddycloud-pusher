@@ -27,7 +27,7 @@ import org.xmpp.packet.IQ;
 import com.buddycloud.pusher.Pusher.Event;
 import com.buddycloud.pusher.Pushers;
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.EmailPusher;
+import com.buddycloud.pusher.strategies.email.EmailPusher;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
