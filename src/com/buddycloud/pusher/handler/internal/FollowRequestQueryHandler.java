@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.buddycloud.pusher.handler;
+package com.buddycloud.pusher.handler.internal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
+import com.buddycloud.pusher.NotificationSettings;
+import com.buddycloud.pusher.Pusher;
+import com.buddycloud.pusher.Pusher.Event;
+import com.buddycloud.pusher.Pushers;
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.Email;
-import com.buddycloud.pusher.email.EmailPusher;
-import com.buddycloud.pusher.utils.UserUtils;
+import com.buddycloud.pusher.handler.AbstractQueryHandler;
+import com.buddycloud.pusher.utils.NotificationUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -35,15 +39,13 @@ import com.buddycloud.pusher.utils.XMPPUtils;
 public class FollowRequestQueryHandler extends AbstractQueryHandler {
 
 	private static final String NAMESPACE = "http://buddycloud.com/pusher/followrequest";
-	private static final String FOLLOWREQUEST_TEMPLATE = "followrequest.tpl";
 	
 	/**
 	 * @param namespace
 	 * @param properties
 	 */
-	public FollowRequestQueryHandler(Properties properties, DataSource dataSource, 
-			 EmailPusher emailPusher) {
-		super(NAMESPACE, properties, dataSource, emailPusher);
+	public FollowRequestQueryHandler(Properties properties, DataSource dataSource) {
+		super(NAMESPACE, properties, dataSource);
 	}
 
 	/* (non-Javadoc)
@@ -63,18 +65,31 @@ public class FollowRequestQueryHandler extends AbstractQueryHandler {
 		
 		String userJid = jidElement.getText();
 		String ownerJid = channelOwnerElement.getText();
-		String ownerEmail = UserUtils.getUserEmail(ownerJid, getDataSource());
 		String channelJid = channelElement.getText();
 		
 		Map<String, String> tokens = new HashMap<String, String>();
 		tokens.put("FIRST_PART_JID", userJid.split("@")[0]);
 		tokens.put("FIRST_PART_OWNER_JID", ownerJid.split("@")[0]);
-		tokens.put("CHANNEL_JID", channelJid);
-		tokens.put("EMAIL", ownerEmail);
+
+		List<NotificationSettings> allNotificationSettings = NotificationUtils.getNotificationSettings(
+				ownerJid, getDataSource());
 		
-		Email email = getEmailPusher().createEmail(tokens, FOLLOWREQUEST_TEMPLATE);
-		getEmailPusher().push(email);
+		for (NotificationSettings notificationSettings : allNotificationSettings) {
+			if (!notificationSettings.getFollowRequest()) {
+				getLogger().warn("User " + ownerJid + " won't receive follow request notifications.");
+				continue;
+			}
+			
+			if (notificationSettings.getTarget() == null) {
+				getLogger().warn("User " + ownerJid + " has no target registered.");
+				continue;
+			}
+			
+			Pusher pusher = Pushers.getInstance(getProperties()).get(notificationSettings.getType());
+			pusher.push(notificationSettings.getTarget(), Event.FOLLOW_REQUEST, tokens);
+		}
 		
-		return createResponse(iq, "User [" + userJid + "] sent a request to follow your channel [" + channelJid + "].");
+		return createResponse(iq, "User [" + userJid + "] sent a request to " +
+				"follow your channel [" + channelJid + "].");
 	}
 }

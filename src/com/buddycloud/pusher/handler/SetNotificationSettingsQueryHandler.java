@@ -22,7 +22,6 @@ import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.NotificationSettings;
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.NotificationUtils;
 
 /**
@@ -38,8 +37,8 @@ public class SetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 	 * @param properties
 	 */
 	public SetNotificationSettingsQueryHandler(Properties properties,
-			DataSource dataSource, EmailPusher emailPusher) {
-		super(NAMESPACE, properties, dataSource, emailPusher);
+			DataSource dataSource) {
+		super(NAMESPACE, properties, dataSource);
 	}
 
 	/*
@@ -56,9 +55,10 @@ public class SetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 		Element settingsEl = queryElement.element("notificationSettings");
 		
 		NotificationSettings notificationSettings = NotificationUtils.fromXML(settingsEl);
-		NotificationSettings updatedNotificationSettings = NotificationUtils.updateNotificationSettings(userJid, 
-				getDataSource(), 
-				notificationSettings);
+		NotificationSettings updatedNotificationSettings = 
+				NotificationUtils.updateNotificationSettings(userJid, 
+						notificationSettings.getType(), getDataSource(), 
+						notificationSettings);
 		
 		return createResponse(iq, userJid, updatedNotificationSettings);
 	}

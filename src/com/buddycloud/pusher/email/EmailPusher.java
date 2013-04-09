@@ -40,10 +40,20 @@ import com.buddycloud.pusher.utils.Configuration;
  * @author Abmar
  *
  */
-public class EmailPusher implements Pusher<Email> {
+public class EmailPusher implements Pusher {
 
+	public static final String TYPE = "email";
+	
 	private static final Logger LOGGER = Logger.getLogger(EmailPusher.class);
 	private static final String TEMPLATE_PREFIX = "mail.template.";
+	
+	private static final String USERFOLLOWED_TEMPLATE = "userfollowed-mychannel.tpl";
+	private static final String FOLLOWREQUEST_TEMPLATE = "followrequest.tpl";
+	private static final String POST_AFTER_MY_POST_TEMPLATE = "userposted-aftermypost.tpl";
+	private static final String MENTION_TEMPLATE = "userposted-mention.tpl";
+	private static final String POST_ON_MY_CHANNEL_TEMPLATE = "userposted-mychannel.tpl";
+	private static final String POST_ON_SUBSCRIBED_CHANNEL_TEMPLATE = "userposted-subscribedchannel.tpl";
+	private static final String WELCOME_TEMPLATE = "welcome.tpl";
 	
 	private final Properties properties;
 	private Map<String, String> defaultTokens;
@@ -55,12 +65,13 @@ public class EmailPusher implements Pusher<Email> {
 	public EmailPusher(Properties properties) {
 		this.properties = properties;
 		this.defaultTokens = readMailTemplateTokens();
+		start();
 	}
 	
 	/**
 	 * 
 	 */
-	public void start() {
+	private void start() {
 		ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(10);
 		threadPool.scheduleAtFixedRate(createPusherRunnable(), 0, 30, TimeUnit.SECONDS);
 	}
@@ -152,15 +163,40 @@ public class EmailPusher implements Pusher<Email> {
 		}
 		return mailTemplateTokens;
 	}
-	
-	public void push(Email email) {
-		emailsToSend.offer(email);
-	}
 
 	public Email createEmail(Map<String, String> tokens, String templateFileName) {
 		HashMap<String, String> allTokens = new HashMap<String, String>();
 		allTokens.putAll(defaultTokens);
 		allTokens.putAll(tokens);
 		return Email.parse(allTokens, templateFileName);
+	}
+
+	@Override
+	public void push(String target, Event event, Map<String, String> tokens) {
+		tokens.put("EMAIL", target);
+		Email email = createEmail(tokens, getTemplate(event));
+		emailsToSend.offer(email);
+	}
+
+	private String getTemplate(Event event) {
+		switch (event) {
+		case SIGNUP:
+			return WELCOME_TEMPLATE;
+		case FOLLOW:
+			return USERFOLLOWED_TEMPLATE;
+		case FOLLOW_REQUEST:
+			return FOLLOWREQUEST_TEMPLATE;
+		case POST_AFTER_MY_POST:
+			return POST_AFTER_MY_POST_TEMPLATE;
+		case MENTION:
+			return MENTION_TEMPLATE;
+		case POST_ON_MY_CHANNEL:
+			return POST_ON_MY_CHANNEL_TEMPLATE;
+		case POST_ON_SUBSCRIBED_CHANNEL:
+			return POST_ON_SUBSCRIBED_CHANNEL_TEMPLATE;
+		default:
+			break;
+		}
+		return null;
 	}
 }

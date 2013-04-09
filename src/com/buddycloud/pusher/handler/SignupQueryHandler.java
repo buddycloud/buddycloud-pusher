@@ -24,8 +24,9 @@ import java.util.Properties;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
+import com.buddycloud.pusher.Pusher.Event;
+import com.buddycloud.pusher.Pushers;
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.Email;
 import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
@@ -36,15 +37,14 @@ import com.buddycloud.pusher.utils.XMPPUtils;
 public class SignupQueryHandler extends AbstractQueryHandler {
 
 	private static final String NAMESPACE = "http://buddycloud.com/pusher/signup";
-	private static final String WELCOME_TEMPLATE = "welcome.tpl";
+	
 	
 	/**
 	 * @param namespace
 	 * @param properties
 	 */
-	public SignupQueryHandler(Properties properties, DataSource dataSource, 
-			EmailPusher emailPusher) {
-		super(NAMESPACE, properties, dataSource, emailPusher);
+	public SignupQueryHandler(Properties properties, DataSource dataSource) {
+		super(NAMESPACE, properties, dataSource);
 	}
 
 	/* (non-Javadoc)
@@ -69,8 +69,8 @@ public class SignupQueryHandler extends AbstractQueryHandler {
 		tokens.put("NEW_USER_JID", jid);
 		tokens.put("EMAIL", emailAddress);
 		
-		Email email = getEmailPusher().createEmail(tokens, WELCOME_TEMPLATE);
-		getEmailPusher().push(email);
+		Pushers.getInstance(getProperties()).get(EmailPusher.TYPE).push(emailAddress, 
+				Event.SIGNUP, tokens);
 		
 		return createResponse(iq, "User [" + jid + "] signed up.");
 	}
@@ -79,8 +79,8 @@ public class SignupQueryHandler extends AbstractQueryHandler {
 		PreparedStatement statement = null;
 		try {
 			statement = getDataSource().prepareStatement(
-					"INSERT INTO notification_settings(jid, email) values (?, ?)", 
-					jid, email);
+					"INSERT INTO notification_settings(jid, target, type) values (?, ?, ?)", 
+					jid, email, "email");
 			statement.execute();
 		} catch (SQLException e) {
 			getLogger().error("Could not insert user [" + jid + ", " + email + "].", e);

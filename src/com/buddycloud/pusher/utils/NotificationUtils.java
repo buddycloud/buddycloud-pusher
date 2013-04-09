@@ -40,7 +40,7 @@ public class NotificationUtils {
 		PreparedStatement statement = null;
 		try {
 			statement = dataSource.prepareStatement(
-					"SELECT jid FROM notification_settings");
+					"SELECT DISTINCT jid FROM notification_settings");
 			ResultSet resultSet = statement.executeQuery();
 			List<String> jids = new LinkedList<String>();
 			while (resultSet.next()) {
@@ -55,24 +55,35 @@ public class NotificationUtils {
 		}
 	}
 	
-	public static NotificationSettings getNotificationSettings(String jid, DataSource dataSource) {
+	public static List<NotificationSettings> getNotificationSettings(String jid, DataSource dataSource) {
 		PreparedStatement statement = null;
 		try {
 			statement = dataSource.prepareStatement(
 					"SELECT * FROM notification_settings WHERE jid=?", 
 					jid);
 			ResultSet resultSet = statement.executeQuery();
+			List<NotificationSettings> allSettings = new LinkedList<NotificationSettings>();
+			while (resultSet.next()) {
+				allSettings.add(parseSettings(resultSet));
+			}
+			return allSettings;
+		} catch (SQLException e) {
+			LOGGER.error("Could not get notification settings from user [" + jid + "].", e);
+			throw new RuntimeException(e);
+		} finally {
+			DataSource.close(statement);
+		}
+	}
+	
+	public static NotificationSettings getNotificationSettingsByType(String jid, String type, DataSource dataSource) {
+		PreparedStatement statement = null;
+		try {
+			statement = dataSource.prepareStatement(
+					"SELECT * FROM notification_settings WHERE jid=? AND type=?", 
+					jid, type);
+			ResultSet resultSet = statement.executeQuery();
 			if (resultSet.next()) {
-				NotificationSettings notificationSettings = new NotificationSettings();
-				notificationSettings.setJid(resultSet.getString("jid"));
-				notificationSettings.setEmail(resultSet.getString("email"));
-				notificationSettings.setPostAfterMe(resultSet.getBoolean("post_after_me"));
-				notificationSettings.setPostMentionedMe(resultSet.getBoolean("post_mentioned_me"));
-				notificationSettings.setPostOnMyChannel(resultSet.getBoolean("post_on_my_channel"));
-				notificationSettings.setPostOnSubscribedChannel(resultSet.getBoolean("post_on_subscribed_channel"));
-				notificationSettings.setFollowedMyChannel(resultSet.getBoolean("follow_my_channel"));
-				notificationSettings.setFollowRequest(resultSet.getBoolean("follow_request"));
-				return notificationSettings;
+				return parseSettings(resultSet);
 			}
 			return null;
 		} catch (SQLException e) {
@@ -83,10 +94,25 @@ public class NotificationUtils {
 		}
 	}
 
-	public static NotificationSettings updateNotificationSettings(String jid, DataSource dataSource, 
-			NotificationSettings notificationSettings) {
+	private static NotificationSettings parseSettings(ResultSet resultSet)
+			throws SQLException {
+		NotificationSettings notificationSettings = new NotificationSettings();
+		notificationSettings.setJid(resultSet.getString("jid"));
+		notificationSettings.setTarget(resultSet.getString("target"));
+		notificationSettings.setType(resultSet.getString("type"));
+		notificationSettings.setPostAfterMe(resultSet.getBoolean("post_after_me"));
+		notificationSettings.setPostMentionedMe(resultSet.getBoolean("post_mentioned_me"));
+		notificationSettings.setPostOnMyChannel(resultSet.getBoolean("post_on_my_channel"));
+		notificationSettings.setPostOnSubscribedChannel(resultSet.getBoolean("post_on_subscribed_channel"));
+		notificationSettings.setFollowedMyChannel(resultSet.getBoolean("follow_my_channel"));
+		notificationSettings.setFollowRequest(resultSet.getBoolean("follow_request"));
+		return notificationSettings;
+	}
+
+	public static NotificationSettings updateNotificationSettings(String jid, String type, 
+			DataSource dataSource, NotificationSettings notificationSettings) {
 		
-		NotificationSettings updatedNotificationsSettings = getNotificationSettings(jid, dataSource);
+		NotificationSettings updatedNotificationsSettings = getNotificationSettingsByType(jid, type, dataSource);
 		if (updatedNotificationsSettings == null) {
 			updatedNotificationsSettings = notificationSettings;
 		} else {
@@ -100,15 +126,16 @@ public class NotificationUtils {
 			connection = dataSource.getConnection();
 			connection.setAutoCommit(false);
 			deleteStatement = dataSource.prepareStatement(
-					"DELETE FROM notification_settings WHERE jid=?", 
-					connection, jid);
+					"DELETE FROM notification_settings WHERE jid=? AND type=?", 
+					connection, jid, type);
 			deleteStatement.executeUpdate();
 			
 			insertStatement = dataSource.prepareStatement(
-					"INSERT INTO notification_settings(jid, email, post_after_me, post_mentioned_me, post_on_my_channel, " +
-					"post_on_subscribed_channel, follow_my_channel, follow_request) values (?, ?, ?, ?, ?, ?, ?, ?)", connection, 
+					"INSERT INTO notification_settings(jid, target, type, post_after_me, post_mentioned_me, post_on_my_channel, " +
+					"post_on_subscribed_channel, follow_my_channel, follow_request) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", connection, 
 					jid, 
-					updatedNotificationsSettings.getEmail(),
+					updatedNotificationsSettings.getTarget(),
+					updatedNotificationsSettings.getType(),
 					updatedNotificationsSettings.getPostAfterMe(), 
 					updatedNotificationsSettings.getPostMentionedMe(), 
 					updatedNotificationsSettings.getPostOnMyChannel(), 
@@ -157,9 +184,9 @@ public class NotificationUtils {
 			NotificationSettings notificationSettings,
 			NotificationSettings oldNotificationsSettings) {
 		
-		if (notificationSettings.getEmail() != null) {
-			oldNotificationsSettings.setEmail(
-					notificationSettings.getEmail());
+		if (notificationSettings.getTarget() != null) {
+			oldNotificationsSettings.setTarget(
+					notificationSettings.getTarget());
 		}
 		
 		if (notificationSettings.getPostAfterMe() != null) {
@@ -199,7 +226,8 @@ public class NotificationUtils {
 		if (notificationSettings == null) {
 			return;
 		}
-		setText(settingsEl, "email", notificationSettings.getEmail());
+		setText(settingsEl, "target", notificationSettings.getTarget());
+		setText(settingsEl, "type", notificationSettings.getType());
 		setText(settingsEl, "postAfterMe", notificationSettings.getPostAfterMe());
 		setText(settingsEl, "postMentionedMe", notificationSettings.getPostMentionedMe());
 		setText(settingsEl, "postOnMyChannel", notificationSettings.getPostOnMyChannel());
@@ -219,7 +247,8 @@ public class NotificationUtils {
 	public static NotificationSettings fromXML(Element settingsEl) {
 		NotificationSettings notificationSettings = new NotificationSettings();
 		
-		String email = getString(settingsEl, "email");
+		String target = getString(settingsEl, "target");
+		String type = getString(settingsEl, "type");
 		Boolean postAfterMe = getBoolean(settingsEl, "postAfterMe");
 		Boolean postMentionedMe = getBoolean(settingsEl, "postMentionedMe");
 		Boolean postOnMyChannel = getBoolean(settingsEl, "postOnMyChannel");
@@ -227,7 +256,9 @@ public class NotificationUtils {
 		Boolean followMyChannel = getBoolean(settingsEl, "followMyChannel");
 		Boolean followRequest = getBoolean(settingsEl, "followRequest");
 		
-		notificationSettings.setEmail(email);
+		notificationSettings.setTarget(target);
+		notificationSettings.setType(type);
+		
 		if (postAfterMe != null) {
 			notificationSettings.setPostAfterMe(postAfterMe);
 		}

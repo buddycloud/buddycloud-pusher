@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.buddycloud.pusher.handler;
+package com.buddycloud.pusher.handler.internal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -23,9 +24,11 @@ import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.NotificationSettings;
+import com.buddycloud.pusher.Pusher;
+import com.buddycloud.pusher.Pusher.Event;
+import com.buddycloud.pusher.Pushers;
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.Email;
-import com.buddycloud.pusher.email.EmailPusher;
+import com.buddycloud.pusher.handler.AbstractQueryHandler;
 import com.buddycloud.pusher.utils.NotificationUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
@@ -33,18 +36,16 @@ import com.buddycloud.pusher.utils.XMPPUtils;
  * @author Abmar
  *
  */
-public class UserPostedMentionQueryHandler extends AbstractQueryHandler {
+public class UserPostedOnSubscribedChannelQueryHandler extends AbstractQueryHandler {
 
-	private static final String NAMESPACE = "http://buddycloud.com/pusher/userposted-mention";
-	private static final String USERPOSTED_TEMPLATE = "userposted-mention.tpl";
+	private static final String NAMESPACE = "http://buddycloud.com/pusher/userposted-subscribedchannel";
 	
 	/**
 	 * @param namespace
 	 * @param properties
 	 */
-	public UserPostedMentionQueryHandler(Properties properties, DataSource dataSource, 
-			EmailPusher emailPusher) {
-		super(NAMESPACE, properties, dataSource, emailPusher);
+	public UserPostedOnSubscribedChannelQueryHandler(Properties properties, DataSource dataSource) {
+		super(NAMESPACE, properties, dataSource);
 	}
 
 	/* (non-Javadoc)
@@ -55,48 +56,43 @@ public class UserPostedMentionQueryHandler extends AbstractQueryHandler {
 		Element queryElement = iq.getElement().element("query");
 		Element authorJidElement = queryElement.element("authorJid");
 		Element channelElement = queryElement.element("channel");
-		Element mentionedJidElement = queryElement.element("mentionedJid");
+		Element followerJidElement = queryElement.element("followerJid");
 		Element postContentElement = queryElement.element("postContent");
 		
-		if (authorJidElement == null || channelElement == null || mentionedJidElement == null) {
+		if (authorJidElement == null || channelElement == null || followerJidElement == null) {
 			return XMPPUtils.error(iq,
 					"You must provide the userJid, the channel and the channelOwner", getLogger());
 		}
 		
 		String authorJid = authorJidElement.getText();
-		String mentionedJid = mentionedJidElement.getText();
-		NotificationSettings notificationSettings = NotificationUtils.getNotificationSettings(
-				mentionedJid, getDataSource());
-		if (notificationSettings == null) {
-			return XMPPUtils.error(iq,
-					"User " + mentionedJid + " is not registered.");
-		}
-		
-		String mentionedEmail = notificationSettings.getEmail();
-		if (mentionedEmail == null) {
-			return XMPPUtils.error(iq,
-					"User " + mentionedJid + " has no email registered.");
-		}
-		
-		if (!notificationSettings.getPostMentionedMe()) {
-			return XMPPUtils.error(iq,
-					"User " + mentionedJid + " won't receive mention notifications.");
-		}
-		
+		String followerJid = followerJidElement.getText();
 		String channelJid = channelElement.getText();
 		String postContent = postContentElement.getText();
 		
 		Map<String, String> tokens = new HashMap<String, String>();
 		tokens.put("AUTHOR_JID", authorJid);
-		tokens.put("MENTIONED_JID", mentionedJid);
+		tokens.put("FOLLOWER_JID", followerJid);
 		tokens.put("CHANNEL_JID", channelJid);
 		tokens.put("CONTENT", postContent);
-		tokens.put("EMAIL", mentionedEmail);
 		
-		Email email = getEmailPusher().createEmail(tokens, USERPOSTED_TEMPLATE);
-		getEmailPusher().push(email);
+		List<NotificationSettings> allNotificationSettings = NotificationUtils.getNotificationSettings(
+				followerJid, getDataSource());
 		
-		return createResponse(iq, "User [" + authorJid + "] mentioned [" + mentionedJidElement + "] " +
-				"on channel [" + channelJid + "].");
+		for (NotificationSettings notificationSettings : allNotificationSettings) {
+			if (!notificationSettings.getPostOnSubscribedChannel()) {
+				getLogger().warn("User " + followerJid + " won't receive post on following channels notifications.");
+				continue;
+			}
+			
+			if (notificationSettings.getTarget() == null) {
+				getLogger().warn("User " + followerJid + " has no target registered.");
+				continue;
+			}
+
+			Pusher pusher = Pushers.getInstance(getProperties()).get(notificationSettings.getType());
+			pusher.push(notificationSettings.getTarget(), Event.POST_ON_SUBSCRIBED_CHANNEL, tokens);
+		}
+		
+		return createResponse(iq, "User [" + authorJid + "] has posted on channel [" + channelJid + "].");
 	}
 }

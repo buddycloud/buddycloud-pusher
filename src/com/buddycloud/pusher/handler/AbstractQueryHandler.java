@@ -22,7 +22,6 @@ import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.EmailPusher;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
 /**
@@ -38,19 +37,17 @@ public abstract class AbstractQueryHandler implements QueryHandler {
 	private final Logger logger;
 	private final Properties properties;
 	private final DataSource dataSource;
-	private final EmailPusher emailPusher;
-
+	
 	/**
 	 * Creates a QueryHandler for a given namespace 
 	 * @param namespace
 	 * @param dataSource 
 	 */
 	public AbstractQueryHandler(String namespace, Properties properties, 
-			DataSource dataSource, EmailPusher emailPusher) {
+			DataSource dataSource) {
 		this.namespace = namespace;
 		this.properties = properties;
 		this.dataSource = dataSource;
-		this.emailPusher = emailPusher;
 		this.logger = Logger.getLogger(getClass());
 	}
 	
@@ -86,13 +83,6 @@ public abstract class AbstractQueryHandler implements QueryHandler {
 		Element queryElement = result.getElement().addElement("query", getNamespace());
 		XMPPUtils.addInfo(info, queryElement);
 		return result;
-	}
-	
-	/**
-	 * @return the emailPusher
-	 */
-	public EmailPusher getEmailPusher() {
-		return emailPusher;
 	}
 	
 	/**

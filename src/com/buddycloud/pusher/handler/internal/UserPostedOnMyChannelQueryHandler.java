@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.buddycloud.pusher.handler;
+package com.buddycloud.pusher.handler.internal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -23,9 +24,11 @@ import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.NotificationSettings;
+import com.buddycloud.pusher.Pusher;
+import com.buddycloud.pusher.Pusher.Event;
+import com.buddycloud.pusher.Pushers;
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.Email;
-import com.buddycloud.pusher.email.EmailPusher;
+import com.buddycloud.pusher.handler.AbstractQueryHandler;
 import com.buddycloud.pusher.utils.NotificationUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
@@ -36,15 +39,13 @@ import com.buddycloud.pusher.utils.XMPPUtils;
 public class UserPostedOnMyChannelQueryHandler extends AbstractQueryHandler {
 
 	private static final String NAMESPACE = "http://buddycloud.com/pusher/userposted-mychannel";
-	private static final String USERPOSTED_TEMPLATE = "userposted-mychannel.tpl";
 	
 	/**
 	 * @param namespace
 	 * @param properties
 	 */
-	public UserPostedOnMyChannelQueryHandler(Properties properties, DataSource dataSource, 
-			EmailPusher emailPusher) {
-		super(NAMESPACE, properties, dataSource, emailPusher);
+	public UserPostedOnMyChannelQueryHandler(Properties properties, DataSource dataSource) {
+		super(NAMESPACE, properties, dataSource);
 	}
 
 	/* (non-Javadoc)
@@ -65,24 +66,6 @@ public class UserPostedOnMyChannelQueryHandler extends AbstractQueryHandler {
 		
 		String authorJid = authorJidElement.getText();
 		String ownerJid = ownerJidElement.getText();
-		NotificationSettings notificationSettings = NotificationUtils.getNotificationSettings(
-				ownerJid, getDataSource());
-		if (notificationSettings == null) {
-			return XMPPUtils.error(iq,
-					"User " + ownerJid + " is not registered.");
-		}
-		
-		String ownerEmail = notificationSettings.getEmail();
-		if (ownerEmail == null) {
-			return XMPPUtils.error(iq,
-					"User " + ownerJid + " has no email registered.");
-		}
-		
-		if (!notificationSettings.getPostOnMyChannel()) {
-			return XMPPUtils.error(iq,
-					"User " + ownerJid + " won't receive post on own channels notifications.");
-		}
-		
 		String channelJid = channelElement.getText();
 		String postContent = postContentElement.getText();
 		
@@ -91,10 +74,24 @@ public class UserPostedOnMyChannelQueryHandler extends AbstractQueryHandler {
 		tokens.put("OWNER_JID", ownerJid);
 		tokens.put("CHANNEL_JID", channelJid);
 		tokens.put("CONTENT", postContent);
-		tokens.put("EMAIL", ownerEmail);
 		
-		Email email = getEmailPusher().createEmail(tokens, USERPOSTED_TEMPLATE);
-		getEmailPusher().push(email);
+		List<NotificationSettings> allNotificationSettings = NotificationUtils.getNotificationSettings(
+				ownerJid, getDataSource());
+		
+		for (NotificationSettings notificationSettings : allNotificationSettings) {
+			if (!notificationSettings.getPostOnMyChannel()) {
+				getLogger().warn("User " + ownerJid + " won't receive notifications for posts on his own channels.");
+				continue;
+			}
+			
+			if (notificationSettings.getTarget() == null) {
+				getLogger().warn("User " + ownerJid + " has no target registered.");
+				continue;
+			}
+
+			Pusher pusher = Pushers.getInstance(getProperties()).get(notificationSettings.getType());
+			pusher.push(notificationSettings.getTarget(), Event.POST_ON_MY_CHANNEL, tokens);
+		}
 		
 		return createResponse(iq, "User [" + authorJid + "] has posted on channel [" + channelJid + "].");
 	}

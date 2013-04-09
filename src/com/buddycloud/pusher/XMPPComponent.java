@@ -17,18 +17,17 @@ import org.xmpp.packet.IQ;
 import org.xmpp.packet.Message;
 
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.EmailPusher;
-import com.buddycloud.pusher.handler.DeleteUserQueryHandler;
-import com.buddycloud.pusher.handler.FollowRequestQueryHandler;
 import com.buddycloud.pusher.handler.GetNotificationSettingsQueryHandler;
 import com.buddycloud.pusher.handler.QueryHandler;
 import com.buddycloud.pusher.handler.SetNotificationSettingsQueryHandler;
 import com.buddycloud.pusher.handler.SignupQueryHandler;
-import com.buddycloud.pusher.handler.UserFollowedQueryHandler;
-import com.buddycloud.pusher.handler.UserPostedAfterMyPostQueryHandler;
-import com.buddycloud.pusher.handler.UserPostedMentionQueryHandler;
-import com.buddycloud.pusher.handler.UserPostedOnMyChannelQueryHandler;
-import com.buddycloud.pusher.handler.UserPostedOnSubscribedChannelQueryHandler;
+import com.buddycloud.pusher.handler.internal.DeleteUserQueryHandler;
+import com.buddycloud.pusher.handler.internal.FollowRequestQueryHandler;
+import com.buddycloud.pusher.handler.internal.UserFollowedQueryHandler;
+import com.buddycloud.pusher.handler.internal.UserPostedAfterMyPostQueryHandler;
+import com.buddycloud.pusher.handler.internal.UserPostedMentionQueryHandler;
+import com.buddycloud.pusher.handler.internal.UserPostedOnMyChannelQueryHandler;
+import com.buddycloud.pusher.handler.internal.UserPostedOnSubscribedChannelQueryHandler;
 import com.buddycloud.pusher.message.MessageProcessor;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
@@ -49,7 +48,6 @@ public class XMPPComponent extends AbstractComponent {
 	
 	private final Properties configuration;
 	private DataSource dataSource;
-	private final EmailPusher emailPusher;
 	private MessageProcessor messageConsumer;
 	
 	/**
@@ -58,8 +56,6 @@ public class XMPPComponent extends AbstractComponent {
 	public XMPPComponent(Properties configuration) {
 		this.configuration = configuration;
 		this.dataSource = new DataSource(configuration);
-		this.emailPusher = new EmailPusher(configuration);
-		this.emailPusher.start();
 		
 		initHandlers();
 		LOGGER.debug("XMPP component initialized.");
@@ -70,18 +66,18 @@ public class XMPPComponent extends AbstractComponent {
 	 */
 	private void initHandlers() {
 		// Get handlers
-		addHandler(new GetNotificationSettingsQueryHandler(configuration, dataSource, emailPusher), queryGetHandlers);
+		addHandler(new GetNotificationSettingsQueryHandler(configuration, dataSource), queryGetHandlers);
 		// Set handlers
-		addHandler(new SetNotificationSettingsQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
-		addHandler(new SignupQueryHandler(configuration, dataSource, emailPusher), querySetHandlers);
+		addHandler(new SetNotificationSettingsQueryHandler(configuration, dataSource), querySetHandlers);
+		addHandler(new SignupQueryHandler(configuration, dataSource), querySetHandlers);
 		// Loopback handlers
-		addHandler(new FollowRequestQueryHandler(configuration, dataSource, emailPusher), loHandlers);
-		addHandler(new DeleteUserQueryHandler(configuration, dataSource, emailPusher), loHandlers);
-		addHandler(new UserFollowedQueryHandler(configuration, dataSource, emailPusher), loHandlers);
-		addHandler(new UserPostedAfterMyPostQueryHandler(configuration, dataSource, emailPusher), loHandlers);
-		addHandler(new UserPostedMentionQueryHandler(configuration, dataSource, emailPusher), loHandlers);
-		addHandler(new UserPostedOnMyChannelQueryHandler(configuration, dataSource, emailPusher), loHandlers);
-		addHandler(new UserPostedOnSubscribedChannelQueryHandler(configuration, dataSource, emailPusher), loHandlers);
+		addHandler(new FollowRequestQueryHandler(configuration, dataSource), loHandlers);
+		addHandler(new DeleteUserQueryHandler(configuration, dataSource), loHandlers);
+		addHandler(new UserFollowedQueryHandler(configuration, dataSource), loHandlers);
+		addHandler(new UserPostedAfterMyPostQueryHandler(configuration, dataSource), loHandlers);
+		addHandler(new UserPostedMentionQueryHandler(configuration, dataSource), loHandlers);
+		addHandler(new UserPostedOnMyChannelQueryHandler(configuration, dataSource), loHandlers);
+		addHandler(new UserPostedOnSubscribedChannelQueryHandler(configuration, dataSource), loHandlers);
 		// Message consumer
 		this.messageConsumer = new MessageProcessor(this);
 	}

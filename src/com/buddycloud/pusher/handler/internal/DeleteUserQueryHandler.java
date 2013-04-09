@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.buddycloud.pusher.handler;
+package com.buddycloud.pusher.handler.internal;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -22,7 +22,7 @@ import java.util.Properties;
 import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.EmailPusher;
+import com.buddycloud.pusher.handler.AbstractQueryHandler;
 
 /**
  * @author Abmar
@@ -36,9 +36,8 @@ public class DeleteUserQueryHandler extends AbstractQueryHandler {
 	 * @param namespace
 	 * @param properties
 	 */
-	public DeleteUserQueryHandler(Properties properties, DataSource dataSource, 
-			 EmailPusher emailPusher) {
-		super(NAMESPACE, properties, dataSource, emailPusher);
+	public DeleteUserQueryHandler(Properties properties, DataSource dataSource) {
+		super(NAMESPACE, properties, dataSource);
 	}
 
 	/* (non-Javadoc)

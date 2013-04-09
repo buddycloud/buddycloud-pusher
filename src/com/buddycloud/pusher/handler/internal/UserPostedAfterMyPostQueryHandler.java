@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.buddycloud.pusher.handler;
+package com.buddycloud.pusher.handler.internal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -23,9 +24,11 @@ import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
 import com.buddycloud.pusher.NotificationSettings;
+import com.buddycloud.pusher.Pusher;
+import com.buddycloud.pusher.Pusher.Event;
+import com.buddycloud.pusher.Pushers;
 import com.buddycloud.pusher.db.DataSource;
-import com.buddycloud.pusher.email.Email;
-import com.buddycloud.pusher.email.EmailPusher;
+import com.buddycloud.pusher.handler.AbstractQueryHandler;
 import com.buddycloud.pusher.utils.NotificationUtils;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
@@ -36,15 +39,13 @@ import com.buddycloud.pusher.utils.XMPPUtils;
 public class UserPostedAfterMyPostQueryHandler extends AbstractQueryHandler {
 	
 	private static final String NAMESPACE = "http://buddycloud.com/pusher/userposted-aftermypost";
-	private static final String USERPOSTED_TEMPLATE = "userposted-aftermypost.tpl";
 	
 	/**
 	 * @param namespace
 	 * @param properties
 	 */
-	public UserPostedAfterMyPostQueryHandler(Properties properties, DataSource dataSource, 
-			EmailPusher emailPusher) {
-		super(NAMESPACE, properties, dataSource, emailPusher);
+	public UserPostedAfterMyPostQueryHandler(Properties properties, DataSource dataSource) {
+		super(NAMESPACE, properties, dataSource);
 	}
 
 	/* (non-Javadoc)
@@ -65,25 +66,6 @@ public class UserPostedAfterMyPostQueryHandler extends AbstractQueryHandler {
 		
 		String authorJid = authorElement.getText();
 		String referencedJid = referencedElement.getText();
-		
-		NotificationSettings notificationSettings = NotificationUtils.getNotificationSettings(
-				referencedJid, getDataSource());
-		if (notificationSettings == null) {
-			return XMPPUtils.error(iq,
-					"User " + referencedJid + " is not registered.");
-		}
-		
-		String referencedEmail = notificationSettings.getEmail();
-		if (referencedEmail == null) {
-			return XMPPUtils.error(iq,
-					"User " + referencedJid + " has no email registered.");
-		}
-		
-		if (!notificationSettings.getPostAfterMe()) {
-			return XMPPUtils.error(iq,
-					"User " + referencedJid + " won't receive comment notifications.");
-		}
-		
 		String channelJid = channelElement.getText();
 		String postContent = postContentElement.getText();
 		
@@ -92,10 +74,24 @@ public class UserPostedAfterMyPostQueryHandler extends AbstractQueryHandler {
 		tokens.put("REFERENCED_JID", referencedJid);
 		tokens.put("CHANNEL_JID", channelJid);
 		tokens.put("CONTENT", postContent);
-		tokens.put("EMAIL", referencedEmail);
 		
-		Email email = getEmailPusher().createEmail(tokens, USERPOSTED_TEMPLATE);
-		getEmailPusher().push(email);
+		List<NotificationSettings> allNotificationSettings = NotificationUtils.getNotificationSettings(
+				referencedJid, getDataSource());
+		
+		for (NotificationSettings notificationSettings : allNotificationSettings) {
+			if (!notificationSettings.getPostAfterMe()) {
+				getLogger().warn("User " + referencedJid + " won't receive comment notifications.");
+				continue;
+			}
+			
+			if (notificationSettings.getTarget() == null) {
+				getLogger().warn("User " + referencedJid + " has no target registered.");
+				continue;
+			}
+
+			Pusher pusher = Pushers.getInstance(getProperties()).get(notificationSettings.getType());
+			pusher.push(notificationSettings.getTarget(), Event.POST_AFTER_MY_POST, tokens);
+		}
 		
 		return createResponse(iq, "User [" + authorJid + "] has posted on channel [" + 
 				channelJid + "] after [" + referencedJid + "] post.");

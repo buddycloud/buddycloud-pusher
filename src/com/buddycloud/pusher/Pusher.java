@@ -15,12 +15,17 @@
  */
 package com.buddycloud.pusher;
 
+import java.util.Map;
+
 /**
  * @author Abmar
  *
  */
-public interface Pusher<T> {
+public interface Pusher {
 
-	void push(T t);
+	enum Event {SIGNUP, FOLLOW_REQUEST, FOLLOW, POST_AFTER_MY_POST, 
+		MENTION, POST_ON_MY_CHANNEL, POST_ON_SUBSCRIBED_CHANNEL} 
+	
+	void push(String target, Event event, Map<String, String> tokens);
 	
 }
