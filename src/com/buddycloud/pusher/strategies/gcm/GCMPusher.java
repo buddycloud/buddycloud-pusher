@@ -1,14 +1,24 @@
 package com.buddycloud.pusher.strategies.gcm;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 import com.buddycloud.pusher.Pusher;
+import com.google.android.gcm.server.Constants;
+import com.google.android.gcm.server.Message;
+import com.google.android.gcm.server.Result;
+import com.google.android.gcm.server.Sender;
 
 public class GCMPusher implements Pusher {
 
 	public static final String TYPE = "gcm";
+	private static final Logger LOGGER = Logger.getLogger(GCMPusher.class);
+	
 	private final Properties properties;
 
 	public GCMPusher(Properties properties) {
@@ -17,7 +27,33 @@ public class GCMPusher implements Pusher {
 	
 	@Override
 	public void push(String target, Event event, Map<String, String> tokens) {
-		// TODO Auto-generated method stub
+		Sender sender = new Sender(properties.getProperty("gcm.api_key"));
+		Message.Builder msgBuilder = new Message.Builder();
+		msgBuilder.addData("event", event.toString());
+		for (Entry<String, String> token : tokens.entrySet()) {
+			msgBuilder.addData(token.getKey(), token.getValue());
+		}
+		Message message = msgBuilder.build();
+		Result result = null;
+		try {
+			result = sender.send(message, target, 5);
+		} catch (IOException e) {
+			LOGGER.error("Failed to send GCM message.", e);
+			return;
+		}
+		
+		if (result.getMessageId() != null) {
+			String canonicalRegId = result.getCanonicalRegistrationId();
+			if (canonicalRegId != null) {
+				//TODO same device has more than on registration ID: update database
+			}
+		} else {
+			String error = result.getErrorCodeName();
+			if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
+				//TODO application has been removed from device - unregister database
+			}
+		}
+		
 	}
 
 	@Override
