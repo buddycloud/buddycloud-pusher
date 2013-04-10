@@ -27,9 +27,15 @@ public class GCMPusher implements Pusher {
 	
 	@Override
 	public void push(String target, Event event, Map<String, String> tokens) {
+		LOGGER.debug("Sending out GCM to " + target + ", " + tokens);
+		
 		Sender sender = new Sender(properties.getProperty("gcm.api_key"));
 		Message.Builder msgBuilder = new Message.Builder();
-		msgBuilder.addData("event", event.toString());
+		msgBuilder.collapseKey("bc_notification")
+			.timeToLive(60)
+			.delayWhileIdle(true)
+			.addData("event", event.toString());
+		
 		for (Entry<String, String> token : tokens.entrySet()) {
 			msgBuilder.addData(token.getKey(), token.getValue());
 		}
@@ -38,7 +44,7 @@ public class GCMPusher implements Pusher {
 		try {
 			result = sender.send(message, target, 5);
 		} catch (IOException e) {
-			LOGGER.error("Failed to send GCM message.", e);
+			LOGGER.error("Failed to send GCM.", e);
 			return;
 		}
 		
@@ -48,6 +54,7 @@ public class GCMPusher implements Pusher {
 				//TODO same device has more than on registration ID: update database
 			}
 		} else {
+			LOGGER.error("Failed to send GCM: " + result.getErrorCodeName());
 			String error = result.getErrorCodeName();
 			if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
 				//TODO application has been removed from device - unregister database
@@ -62,5 +69,4 @@ public class GCMPusher implements Pusher {
 		metadata.put("google_project_id", properties.getProperty("gcm.google_project_id"));
 		return metadata;
 	}
-
 }

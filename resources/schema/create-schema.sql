@@ -8,6 +8,6 @@ CREATE TABLE notification_settings (
    post_on_subscribed_channel BOOLEAN DEFAULT FALSE,
    follow_my_channel BOOLEAN DEFAULT TRUE,
    follow_request BOOLEAN DEFAULT TRUE,
-   PRIMARY KEY (jid)
+   PRIMARY KEY (jid, type)
 );
 CREATE INDEX notification_settings_jid_index ON notification_settings(jid);
