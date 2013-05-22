@@ -12,7 +12,7 @@ Some other channels you might like to follow are: <br>
 <a href="<%WEB_CLIENT_URL%>/music@<%TOPICS_DOMAIN_NAME%>">music@<%TOPICS_DOMAIN_NAME%></a><br>
 <a href="<%WEB_CLIENT_URL%>/topics@<%TOPICS_DOMAIN_NAME%>">topics@<%TOPICS_DOMAIN_NAME%></a><br>
 <br>
-We’re excited to have you on <%DOMAIN_NAME%>’s buddycloud!<br>
+We're excited to have you on <%DOMAIN_NAME%>'s buddycloud!<br>
 <br>
 <%ADMIN_NAME%><br>
 <br>
