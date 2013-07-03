@@ -31,10 +31,7 @@ public class GCMPusher implements Pusher {
 		
 		Sender sender = new Sender(properties.getProperty("gcm.api_key"));
 		Message.Builder msgBuilder = new Message.Builder();
-		msgBuilder.collapseKey("bc_notification")
-			.timeToLive(60)
-			.delayWhileIdle(true)
-			.addData("event", event.toString());
+		msgBuilder.addData("event", event.toString());
 		
 		for (Entry<String, String> token : tokens.entrySet()) {
 			msgBuilder.addData(token.getKey(), token.getValue());
