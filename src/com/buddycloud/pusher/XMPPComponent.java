@@ -119,7 +119,9 @@ public class XMPPComponent extends AbstractComponent {
 		
 		BlockingQueue<IQ> queue = new LinkedBlockingDeque<IQ>();
 		iqResultQueues.put(iqId, queue);
+		LOGGER.debug("S: " + iq.toXML());
 		send(iq);
+		
 		try {
 			IQ poll = queue.poll(SmackConfiguration.getPacketReplyTimeout(), TimeUnit.SECONDS);
 			return poll;
