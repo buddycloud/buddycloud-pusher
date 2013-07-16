@@ -5,7 +5,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="buddycloud pusher"
 NAME="buddycloud-pusher"
-RUNFROM=usr/share/buddycloud-pusher
+RUNFROM=/usr/share/buddycloud-pusher
 DAEMON=/usr/bin/java
 DAEMON_ARGS="-cp .:./*:./lib/* com.buddycloud.pusher.Main"
 PIDFILE=/var/run/$NAME.pid
