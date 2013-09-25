@@ -29,6 +29,7 @@ import com.buddycloud.pusher.handler.internal.UserPostedAfterMyPostQueryHandler;
 import com.buddycloud.pusher.handler.internal.UserPostedMentionQueryHandler;
 import com.buddycloud.pusher.handler.internal.UserPostedOnMyChannelQueryHandler;
 import com.buddycloud.pusher.handler.internal.UserPostedOnSubscribedChannelQueryHandler;
+import com.buddycloud.pusher.handler.internal.UserUnfollowedQueryHandler;
 import com.buddycloud.pusher.message.MessageProcessor;
 import com.buddycloud.pusher.utils.XMPPUtils;
 
@@ -76,6 +77,7 @@ public class XMPPComponent extends AbstractComponent {
 		addHandler(new FollowRequestQueryHandler(configuration, dataSource), loHandlers);
 		addHandler(new DeleteUserQueryHandler(configuration, dataSource), loHandlers);
 		addHandler(new UserFollowedQueryHandler(configuration, dataSource), loHandlers);
+		addHandler(new UserUnfollowedQueryHandler(configuration, dataSource), loHandlers);
 		addHandler(new UserPostedAfterMyPostQueryHandler(configuration, dataSource), loHandlers);
 		addHandler(new UserPostedMentionQueryHandler(configuration, dataSource), loHandlers);
 		addHandler(new UserPostedOnMyChannelQueryHandler(configuration, dataSource), loHandlers);

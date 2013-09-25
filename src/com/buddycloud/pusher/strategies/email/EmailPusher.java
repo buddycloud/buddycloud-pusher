@@ -48,6 +48,7 @@ public class EmailPusher implements Pusher {
 	private static final String TEMPLATE_PREFIX = "mail.template.";
 	
 	private static final String USERFOLLOWED_TEMPLATE = "userfollowed-mychannel.tpl";
+	private static final String USERUNFOLLOWED_TEMPLATE = "userunfollowed-mychannel.tpl";
 	private static final String FOLLOWREQUEST_TEMPLATE = "followrequest.tpl";
 	private static final String POST_AFTER_MY_POST_TEMPLATE = "userposted-aftermypost.tpl";
 	private static final String MENTION_TEMPLATE = "userposted-mention.tpl";
@@ -184,6 +185,8 @@ public class EmailPusher implements Pusher {
 			return WELCOME_TEMPLATE;
 		case FOLLOW:
 			return USERFOLLOWED_TEMPLATE;
+		case UNFOLLOW:
+			return USERUNFOLLOWED_TEMPLATE;
 		case FOLLOW_REQUEST:
 			return FOLLOWREQUEST_TEMPLATE;
 		case POST_AFTER_MY_POST:

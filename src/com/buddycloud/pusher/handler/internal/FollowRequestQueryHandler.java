@@ -38,7 +38,7 @@ import com.buddycloud.pusher.utils.XMPPUtils;
  */
 public class FollowRequestQueryHandler extends AbstractQueryHandler {
 
-	private static final String NAMESPACE = "http://buddycloud.com/pusher/followrequest";
+	public static final String NAMESPACE = "http://buddycloud.com/pusher/followrequest";
 	
 	/**
 	 * @param namespace
@@ -54,22 +54,23 @@ public class FollowRequestQueryHandler extends AbstractQueryHandler {
 	@Override
 	protected IQ handleQuery(IQ iq) {
 		Element queryElement = iq.getElement().element("query");
-		Element jidElement = queryElement.element("userJid");
+		Element followerElement = queryElement.element("followerJid");
 		Element channelElement = queryElement.element("channel");
-		Element channelOwnerElement = queryElement.element("channelOwnerJid");
+		Element channelOwnerElement = queryElement.element("ownerJid");
 		
-		if (jidElement == null || channelElement == null || channelOwnerElement == null) {
+		if (followerElement == null || channelElement == null || channelOwnerElement == null) {
 			return XMPPUtils.error(iq,
 					"You must provide the userJid, the channel and the channelOwner", getLogger());
 		}
 		
-		String userJid = jidElement.getText();
+		String followerJid = followerElement.getText();
 		String ownerJid = channelOwnerElement.getText();
 		String channelJid = channelElement.getText();
 		
 		Map<String, String> tokens = new HashMap<String, String>();
-		tokens.put("FIRST_PART_JID", userJid.split("@")[0]);
-		tokens.put("FIRST_PART_OWNER_JID", ownerJid.split("@")[0]);
+		tokens.put("FOLLOWER_JID", followerJid);
+		tokens.put("OWNER_JID", ownerJid);
+		tokens.put("CHANNEL_JID", channelJid);
 
 		List<NotificationSettings> allNotificationSettings = NotificationUtils.getNotificationSettings(
 				ownerJid, getDataSource());
@@ -89,7 +90,7 @@ public class FollowRequestQueryHandler extends AbstractQueryHandler {
 			pusher.push(notificationSettings.getTarget(), Event.FOLLOW_REQUEST, tokens);
 		}
 		
-		return createResponse(iq, "User [" + userJid + "] sent a request to " +
+		return createResponse(iq, "User [" + followerJid + "] sent a request to " +
 				"follow your channel [" + channelJid + "].");
 	}
 }

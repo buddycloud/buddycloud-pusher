@@ -36,15 +36,15 @@ import com.buddycloud.pusher.utils.XMPPUtils;
  * @author Abmar
  *
  */
-public class UserFollowedQueryHandler extends AbstractQueryHandler {
+public class UserUnfollowedQueryHandler extends AbstractQueryHandler {
 
-	public static final String NAMESPACE = "http://buddycloud.com/pusher/userfollowed";
+	public static final String NAMESPACE = "http://buddycloud.com/pusher/userunfollowed";
 	
 	/**
 	 * @param namespace
 	 * @param properties
 	 */
-	public UserFollowedQueryHandler(Properties properties, DataSource dataSource) {
+	public UserUnfollowedQueryHandler(Properties properties, DataSource dataSource) {
 		super(NAMESPACE, properties, dataSource);
 	}
 
@@ -87,9 +87,9 @@ public class UserFollowedQueryHandler extends AbstractQueryHandler {
 			}
 
 			Pusher pusher = Pushers.getInstance(getProperties()).get(notificationSettings.getType());
-			pusher.push(notificationSettings.getTarget(), Event.FOLLOW, tokens);
+			pusher.push(notificationSettings.getTarget(), Event.UNFOLLOW, tokens);
 		}
 		
-		return createResponse(iq, "User [" + followerJid + "] has followed channel [" + channelJid + "].");
+		return createResponse(iq, "User [" + followerJid + "] unfollowed channel [" + channelJid + "].");
 	}
 }

@@ -22,7 +22,7 @@ public class MessageProcessor implements MessageConsumer {
 		consumers.add(new UserPostedAfterMyPostConsumer(component));
 		consumers.add(new UserPostedOnMyChannelConsumer(component));
 		consumers.add(new UserPostedOnSubscribedChannelConsumer(component));
-		consumers.add(new UserFollowedConsumer(component));
+		consumers.add(new SubscriptionChangedConsumer(component));
 	}
 
 	public void consume(Message message) {
