@@ -9,6 +9,8 @@ import org.xmpp.packet.IQ;
 import org.xmpp.packet.Message;
 
 import com.buddycloud.pusher.XMPPComponent;
+import com.buddycloud.pusher.handler.internal.FollowRequestApprovedQueryHandler;
+import com.buddycloud.pusher.handler.internal.FollowRequestDeniedQueryHandler;
 import com.buddycloud.pusher.handler.internal.FollowRequestQueryHandler;
 import com.buddycloud.pusher.handler.internal.UserUnfollowedQueryHandler;
 import com.buddycloud.pusher.handler.internal.UserFollowedQueryHandler;
@@ -27,8 +29,8 @@ public class SubscriptionChangedConsumer extends AbstractMessageConsumer {
 		/*
 		<message from="channels.buddycloud.org" type="headline" to="pusher.buddycloud.com">
 		<event xmlns="http://jabber.org/protocol/pubsub#event">
-		  <subscription xmlns="" subscription="pending" jid="abmargb@buddycloud.org" node="/user/abmargb-tester@buddycloud.org/posts"/>
-		  <affiliations xmlns="">
+		  <subscription subscription="pending" jid="abmargb@buddycloud.org" node="/user/abmargb-tester@buddycloud.org/posts"/>
+		  <affiliations>
 		    <affiliation node="/user/abmargb-tester@buddycloud.org/posts" jid="abmargb@buddycloud.org" affiliation="publisher"/>
 		  </affiliations>
 		</event>
@@ -54,23 +56,36 @@ public class SubscriptionChangedConsumer extends AbstractMessageConsumer {
 			return;
 		}
 		
+		boolean isApproval = eventEl.element("affiliations") == null;
+		
 		for (Affiliation owner : owners) {
 			subscriptionChanged(owner.getJid(), followerJid, channelJid, 
-					recipients, subscriptionState);
+					recipients, subscriptionState, isApproval);
 		}
 	}
 
 	private void subscriptionChanged(String ownerJid, String followerJid, String channelJid, 
-			List<String> recipients, String subscriptionState) {
-		if (ownerJid.equals(followerJid) || recipients.contains(ownerJid)) {
+			List<String> recipients, String subscriptionState, boolean isApproval) {
+		if (ownerJid.equals(followerJid)) {
+			return;
+		}
+		if (recipients.contains(ownerJid) && !isApproval) {
+			return;
+		}
+		if (recipients.contains(followerJid) && isApproval) {
 			return;
 		}
 		
-		IQ iq = createIq(ownerJid, followerJid, channelJid, subscriptionState);
+		IQ iq = createIq(ownerJid, followerJid, channelJid, 
+				subscriptionState, isApproval);
 		try {
 			IQ iqResponse = getXmppComponent().handleIQLoopback(iq);
 			if (iqResponse.getError() == null) {
-				recipients.add(ownerJid);
+				if (isApproval) {
+					recipients.add(followerJid);
+				} else {
+					recipients.add(ownerJid);
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.warn(e);
@@ -78,14 +93,22 @@ public class SubscriptionChangedConsumer extends AbstractMessageConsumer {
 	}
 	
 	private IQ createIq(String ownerJid, String followerJid, 
-			String channelJid, String subscriptionState) {
+			String channelJid, String subscriptionState, boolean isApproval) {
         String ns = null;
-        if (subscriptionState.equals("subscribed")) {
-        	ns = UserFollowedQueryHandler.NAMESPACE;
-        } else if (subscriptionState.equals("none")) {
-        	ns = UserUnfollowedQueryHandler.NAMESPACE;
-        } if (subscriptionState.equals("pending")) {
-        	ns = FollowRequestQueryHandler.NAMESPACE;
+        if (isApproval) {
+        	if (subscriptionState.equals("subscribed")) {
+        		ns = FollowRequestApprovedQueryHandler.NAMESPACE;
+        	} else if (subscriptionState.equals("none")) {
+        		ns = FollowRequestDeniedQueryHandler.NAMESPACE;
+        	}
+        } else {
+        	if (subscriptionState.equals("subscribed")) {
+        		ns = UserFollowedQueryHandler.NAMESPACE;
+        	} else if (subscriptionState.equals("none")) {
+        		ns = UserUnfollowedQueryHandler.NAMESPACE;
+        	} else if (subscriptionState.equals("pending")) {
+        		ns = FollowRequestQueryHandler.NAMESPACE;
+        	}
         }
 		
 		IQ iq = new IQ();

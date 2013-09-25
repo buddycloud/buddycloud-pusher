@@ -24,7 +24,8 @@ import java.util.Map;
 public interface Pusher {
 
 	enum Event {SIGNUP, FOLLOW_REQUEST, FOLLOW, UNFOLLOW, POST_AFTER_MY_POST, 
-		MENTION, POST_ON_MY_CHANNEL, POST_ON_SUBSCRIBED_CHANNEL} 
+		MENTION, POST_ON_MY_CHANNEL, POST_ON_SUBSCRIBED_CHANNEL, FOLLOW_REQUEST_APPROVED, 
+		FOLLOW_REQUEST_DENIED} 
 	
 	void push(String target, Event event, Map<String, String> tokens);
 	

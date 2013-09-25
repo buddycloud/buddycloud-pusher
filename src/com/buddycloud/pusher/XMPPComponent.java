@@ -23,6 +23,8 @@ import com.buddycloud.pusher.handler.QueryHandler;
 import com.buddycloud.pusher.handler.SetNotificationSettingsQueryHandler;
 import com.buddycloud.pusher.handler.SignupQueryHandler;
 import com.buddycloud.pusher.handler.internal.DeleteUserQueryHandler;
+import com.buddycloud.pusher.handler.internal.FollowRequestApprovedQueryHandler;
+import com.buddycloud.pusher.handler.internal.FollowRequestDeniedQueryHandler;
 import com.buddycloud.pusher.handler.internal.FollowRequestQueryHandler;
 import com.buddycloud.pusher.handler.internal.UserFollowedQueryHandler;
 import com.buddycloud.pusher.handler.internal.UserPostedAfterMyPostQueryHandler;
@@ -75,6 +77,8 @@ public class XMPPComponent extends AbstractComponent {
 		addHandler(new SignupQueryHandler(configuration, dataSource), querySetHandlers);
 		// Loopback handlers
 		addHandler(new FollowRequestQueryHandler(configuration, dataSource), loHandlers);
+		addHandler(new FollowRequestApprovedQueryHandler(configuration, dataSource), loHandlers);
+		addHandler(new FollowRequestDeniedQueryHandler(configuration, dataSource), loHandlers);
 		addHandler(new DeleteUserQueryHandler(configuration, dataSource), loHandlers);
 		addHandler(new UserFollowedQueryHandler(configuration, dataSource), loHandlers);
 		addHandler(new UserUnfollowedQueryHandler(configuration, dataSource), loHandlers);

@@ -50,6 +50,8 @@ public class EmailPusher implements Pusher {
 	private static final String USERFOLLOWED_TEMPLATE = "userfollowed-mychannel.tpl";
 	private static final String USERUNFOLLOWED_TEMPLATE = "userunfollowed-mychannel.tpl";
 	private static final String FOLLOWREQUEST_TEMPLATE = "followrequest.tpl";
+	private static final String FOLLOWREQUESTAPPROVED_TEMPLATE = "followrequest-approved.tpl";
+	private static final String FOLLOWREQUESTDENIED_TEMPLATE = "followrequest-denied.tpl";
 	private static final String POST_AFTER_MY_POST_TEMPLATE = "userposted-aftermypost.tpl";
 	private static final String MENTION_TEMPLATE = "userposted-mention.tpl";
 	private static final String POST_ON_MY_CHANNEL_TEMPLATE = "userposted-mychannel.tpl";
@@ -197,6 +199,10 @@ public class EmailPusher implements Pusher {
 			return POST_ON_MY_CHANNEL_TEMPLATE;
 		case POST_ON_SUBSCRIBED_CHANNEL:
 			return POST_ON_SUBSCRIBED_CHANNEL_TEMPLATE;
+		case FOLLOW_REQUEST_APPROVED:
+			return FOLLOWREQUESTAPPROVED_TEMPLATE;
+		case FOLLOW_REQUEST_DENIED:
+			return FOLLOWREQUESTDENIED_TEMPLATE;
 		default:
 			break;
 		}
