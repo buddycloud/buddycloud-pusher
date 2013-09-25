@@ -1,6 +1,1 @@
-.settings
-.project
-.classpath
-.DS_Store
-*.swp
-configuration.properties
+/target
