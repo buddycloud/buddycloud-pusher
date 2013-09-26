@@ -66,15 +66,26 @@ public class ConsumerUtils {
 	}
 	
 	public static List<Affiliation> getOwners(String node, XMPPComponent xmppComponent) throws XMPPException {
-		List<Affiliation> owners = new LinkedList<Affiliation>();
-		for (Affiliation affiliation : getAffiliations(node, xmppComponent)) {
-			if (affiliation.getAffiliation().equals("owner")) {
-				owners.add(affiliation);
-			}
-		}
-		return owners;
+		return getAffiliationsInRoles(node, xmppComponent, "owner");
+	}
+	
+	public static List<Affiliation> getOwnersAndModerators(String node, XMPPComponent xmppComponent) throws XMPPException {
+		return getAffiliationsInRoles(node, xmppComponent, "owner", "moderator");
 	}
 
+	private static List<Affiliation> getAffiliationsInRoles(String node, 
+			XMPPComponent xmppComponent, String... roles) throws XMPPException {
+		List<Affiliation> affiliationsInRoles = new LinkedList<Affiliation>();
+		for (Affiliation affiliation : getAffiliations(node, xmppComponent)) {
+			for (String role : roles) {
+				if (affiliation.getAffiliation().equals(role)) {
+					affiliationsInRoles.add(affiliation);
+				}
+			}
+		}
+		return affiliationsInRoles;
+	}
+	
 	public static IQ getSingleItem(String replyRef, String node, XMPPComponent xmppComponent) {
 		String channelServerJid = xmppComponent.getProperty("channel.server");
 		IQ iq = new IQ();

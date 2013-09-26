@@ -48,9 +48,9 @@ public class SubscriptionChangedConsumer extends AbstractMessageConsumer {
 		String followerJid = subscriptionEl.attributeValue("jid");
 		String channelJid = subscriptionEl.attributeValue("node");
 		
-		List<Affiliation> owners = null;
+		List<Affiliation> moderators = null;
 		try {
-			owners = ConsumerUtils.getOwners(channelJid, getXmppComponent());
+			moderators = ConsumerUtils.getOwnersAndModerators(channelJid, getXmppComponent());
 		} catch (XMPPException e) {
 			LOGGER.warn(e);
 			return;
@@ -58,8 +58,8 @@ public class SubscriptionChangedConsumer extends AbstractMessageConsumer {
 		
 		boolean isApproval = eventEl.element("affiliations") == null;
 		
-		for (Affiliation owner : owners) {
-			subscriptionChanged(owner.getJid(), followerJid, channelJid, 
+		for (Affiliation moderator : moderators) {
+			subscriptionChanged(moderator.getJid(), followerJid, channelJid, 
 					recipients, subscriptionState, isApproval);
 		}
 	}
