@@ -70,7 +70,7 @@ public class PasswordResetQueryHandler extends AbstractQueryHandler {
 		//TODO use XEP-0133 instead
 		IQ resetIq = new IQ();
 		resetIq.setFrom(iq.getFrom());
-		resetIq.setTo(splitUsername[0]);
+		resetIq.setTo(splitUsername[1]);
 		resetIq.setType(org.xmpp.packet.IQ.Type.set);
 		Element resetQueryEl = resetIq.getElement().addElement("query", "jabber:iq:register");
 		resetQueryEl.element("username").setText(splitUsername[0]);
