@@ -73,10 +73,10 @@ public class PasswordResetQueryHandler extends AbstractQueryHandler {
 		resetIq.setTo(splitUsername[1]);
 		resetIq.setType(org.xmpp.packet.IQ.Type.set);
 		Element resetQueryEl = resetIq.getElement().addElement("query", "jabber:iq:register");
-		resetQueryEl.element("username").setText(splitUsername[0]);
+		resetQueryEl.addElement("username").setText(splitUsername[0]);
 		
 		String randomPassword = RandomStringUtils.randomAlphanumeric(8);
-		resetQueryEl.element("password").setText(randomPassword);
+		resetQueryEl.addElement("password").setText(randomPassword);
 		
 		IQ resetReplyIq = xmppComponent.syncIQ(resetIq);
 		
