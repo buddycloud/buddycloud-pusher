@@ -19,6 +19,7 @@ import org.xmpp.packet.Message;
 import com.buddycloud.pusher.db.DataSource;
 import com.buddycloud.pusher.handler.GetNotificationSettingsQueryHandler;
 import com.buddycloud.pusher.handler.GetPusherMetadataQueryHandler;
+import com.buddycloud.pusher.handler.PasswordResetQueryHandler;
 import com.buddycloud.pusher.handler.QueryHandler;
 import com.buddycloud.pusher.handler.SetNotificationSettingsQueryHandler;
 import com.buddycloud.pusher.handler.SignupQueryHandler;
@@ -75,6 +76,7 @@ public class XMPPComponent extends AbstractComponent {
 		// Set handlers
 		addHandler(new SetNotificationSettingsQueryHandler(configuration, dataSource), querySetHandlers);
 		addHandler(new SignupQueryHandler(configuration, dataSource), querySetHandlers);
+		addHandler(new PasswordResetQueryHandler(this, configuration, dataSource), querySetHandlers);
 		// Loopback handlers
 		addHandler(new FollowRequestQueryHandler(configuration, dataSource), loHandlers);
 		addHandler(new FollowRequestApprovedQueryHandler(configuration, dataSource), loHandlers);

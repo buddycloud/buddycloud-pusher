@@ -57,6 +57,7 @@ public class EmailPusher implements Pusher {
 	private static final String POST_ON_MY_CHANNEL_TEMPLATE = "userposted-mychannel.tpl";
 	private static final String POST_ON_SUBSCRIBED_CHANNEL_TEMPLATE = "userposted-subscribedchannel.tpl";
 	private static final String WELCOME_TEMPLATE = "welcome.tpl";
+	private static final String PASSWORD_RESET_TEMPLATE = "password-reset.tpl";
 	
 	private final Properties properties;
 	private Map<String, String> defaultTokens;
@@ -203,6 +204,8 @@ public class EmailPusher implements Pusher {
 			return FOLLOWREQUESTAPPROVED_TEMPLATE;
 		case FOLLOW_REQUEST_DENIED:
 			return FOLLOWREQUESTDENIED_TEMPLATE;
+		case PASSWORD_RESET:
+			return PASSWORD_RESET_TEMPLATE;
 		default:
 			break;
 		}
