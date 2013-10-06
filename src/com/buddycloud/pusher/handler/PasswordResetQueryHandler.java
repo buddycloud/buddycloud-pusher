@@ -16,12 +16,15 @@
 package com.buddycloud.pusher.handler;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
+import org.xmpp.packet.PacketError;
+import org.xmpp.packet.IQ.Type;
 
 import com.buddycloud.pusher.NotificationSettings;
 import com.buddycloud.pusher.Pusher.Event;
@@ -58,44 +61,67 @@ public class PasswordResetQueryHandler extends AbstractQueryHandler {
 	 * com.buddycloud.pusher.handler.AbstractQueryHandler#handleQuery(org.xmpp
 	 * .packet.IQ)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	protected IQ handleQuery(IQ iq) {
-		String userJid = iq.getFrom().toBareJID();
 		Element queryElement = iq.getElement().element("query");
 		Element usernameEl = queryElement.element("username");
 		String username = usernameEl.getTextTrim();
 		
 		String[] splitUsername = username.split("@");
+		String domain = splitUsername[1];
 		
-		//TODO use XEP-0133 instead
-		IQ resetIq = new IQ();
-		resetIq.setFrom(username);
-		resetIq.setTo(splitUsername[1]);
-		resetIq.setType(org.xmpp.packet.IQ.Type.set);
-		Element resetQueryEl = resetIq.getElement().addElement("query", "jabber:iq:register");
-		resetQueryEl.addElement("username").setText(splitUsername[0]);
+		IQ issueCommandIq = new IQ();
+		issueCommandIq.setTo(domain);
+		issueCommandIq.setFrom(iq.getTo());
+		issueCommandIq.setType(org.xmpp.packet.IQ.Type.set);
+		
+		Element issueCommandEl = issueCommandIq.getElement().addElement("command", 
+				"http://jabber.org/protocol/commands");
+		issueCommandEl.addAttribute("action", "execute");
+		issueCommandEl.addAttribute("node", "http://jabber.org/protocol/admin#change-user-password");
+		
+		IQ changeCommandIq = xmppComponent.syncIQ(issueCommandIq);
+		
+		if (changeCommandIq.getError() != null) {
+			return createResponse(iq, changeCommandIq);
+		}
 		
 		String randomPassword = RandomStringUtils.randomAlphanumeric(8);
-		resetQueryEl.addElement("password").setText(randomPassword);
 		
-		IQ resetReplyIq = xmppComponent.syncIQ(resetIq);
+		changeCommandIq.setType(Type.set);
+		changeCommandIq.setTo(domain);
+		changeCommandIq.setFrom(iq.getTo());
 		
-		if (resetReplyIq.getError() != null) {
+		Element xEl = changeCommandIq.getElement().element("command").element("x");
+		List<Element> fields = xEl.elements("field");
+		for (Element field : fields) {
+			String var = field.attributeValue("var");
+			if (var.equals("accountjid")) {
+				field.addElement("value").setText(username);
+			} else if (var.equals("password")) {
+				field.addElement("value").setText(randomPassword);
+			}
+		}
+		
+		IQ changeCommandReplyIq = xmppComponent.syncIQ(changeCommandIq);
+		
+		if (changeCommandReplyIq.getError() == null) {
 			NotificationSettings notificationSettings = NotificationUtils
-					.getNotificationSettingsByType(userJid, "email", getDataSource());
+					.getNotificationSettingsByType(username, "email", getDataSource());
 			
 			String emailAddress = notificationSettings.getTarget();
 			
 			Map<String, String> tokens = new HashMap<String, String>();
 			tokens.put("NEW_PASSWORD", randomPassword);
 			tokens.put("EMAIL", emailAddress);
-			tokens.put("JID", userJid);
+			tokens.put("JID", username);
 			
 			Pushers.getInstance(getProperties()).get(EmailPusher.TYPE).push(
 					emailAddress, Event.PASSWORD_RESET, tokens);
 		}
 		
-		return createResponse(iq, resetReplyIq);
+		return createResponse(iq, changeCommandReplyIq);
 	}
 
 	/**
@@ -109,7 +135,10 @@ public class PasswordResetQueryHandler extends AbstractQueryHandler {
 		result.setType(resetReplyIq.getType());
 		result.getElement().addElement("query", getNamespace());
 		if (resetReplyIq.getError() != null) {
-			result.setError(resetReplyIq.getError());
+			PacketError pe = new PacketError(
+					resetReplyIq.getError().getCondition(),
+					resetReplyIq.getError().getType());
+			result.setError(pe);
 		}
 		return result;
 	}

@@ -114,6 +114,15 @@ public class XMPPComponent extends AbstractComponent {
 	}
 	
 	@Override
+	protected void handleIQError(IQ iq) {
+		BlockingQueue<IQ> queue = iqResultQueues.get(iq.getID());
+		if (queue != null) {
+			queue.add(iq);
+		}
+		super.handleIQError(iq);
+	}
+	
+	@Override
 	protected void handleIQResult(IQ iq) {
 		BlockingQueue<IQ> queue = iqResultQueues.get(iq.getID());
 		if (queue != null) {
