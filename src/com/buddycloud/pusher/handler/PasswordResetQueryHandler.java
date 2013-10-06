@@ -115,7 +115,7 @@ public class PasswordResetQueryHandler extends AbstractQueryHandler {
 			Map<String, String> tokens = new HashMap<String, String>();
 			tokens.put("NEW_PASSWORD", randomPassword);
 			tokens.put("EMAIL", emailAddress);
-			tokens.put("JID", username);
+			tokens.put("USER_JID", username);
 			
 			Pushers.getInstance(getProperties()).get(EmailPusher.TYPE).push(
 					emailAddress, Event.PASSWORD_RESET, tokens);
