@@ -23,6 +23,7 @@ import com.buddycloud.pusher.handler.PasswordResetQueryHandler;
 import com.buddycloud.pusher.handler.QueryHandler;
 import com.buddycloud.pusher.handler.SetNotificationSettingsQueryHandler;
 import com.buddycloud.pusher.handler.SignupQueryHandler;
+import com.buddycloud.pusher.handler.UnregisterQueryHandler;
 import com.buddycloud.pusher.handler.internal.DeleteUserQueryHandler;
 import com.buddycloud.pusher.handler.internal.FollowRequestApprovedQueryHandler;
 import com.buddycloud.pusher.handler.internal.FollowRequestDeniedQueryHandler;
@@ -77,6 +78,7 @@ public class XMPPComponent extends AbstractComponent {
 		addHandler(new SetNotificationSettingsQueryHandler(configuration, dataSource), querySetHandlers);
 		addHandler(new SignupQueryHandler(configuration, dataSource), querySetHandlers);
 		addHandler(new PasswordResetQueryHandler(this, configuration, dataSource), querySetHandlers);
+		addHandler(new UnregisterQueryHandler(configuration, dataSource), querySetHandlers);
 		// Loopback handlers
 		addHandler(new FollowRequestQueryHandler(configuration, dataSource), loHandlers);
 		addHandler(new FollowRequestApprovedQueryHandler(configuration, dataSource), loHandlers);
