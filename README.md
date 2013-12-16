@@ -88,7 +88,7 @@ Component design
 -   Stores emails addresses during users signup
 -   Stores preferences regarding email notification
 
-![](Pusher-sequence.png "Pusher-sequence.png")
+![](https://buddycloud.org/w/images/d/da/Pusher-sequence.png "Sequence diagram")
 
 Stanzas
 -------
