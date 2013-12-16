@@ -130,7 +130,9 @@ HTTP API to pusher
     to='pusher.example.com' 
     id='023FE3AA4'
     type='set'>
-    <query xmlns='http://buddycloud.com/pusher/deleteuser'/>
+    <query xmlns='jabber:iq:register'>
+      <remove/>
+    </query>
 </iq>
 ~~~~
 
@@ -141,9 +143,36 @@ pusher to HTTP API
     id='023FE3AA4' 
     to='newuser@buddycloud.example.com'
     type='result'> 
-    <query xmlns='http://buddycloud.com/pusher/deleteuser'>
-        <info>User [newuser@buddycloud.example.com] was deleted.</info>
+    <query xmlns='jabber:iq:register'/>
+</iq>
+~~~~
+
+The same stanza can be used to remove specific records
+Both type and target fields are optional.
+
+HTTP API to pusher
+
+~~~~ {.xml}
+<iq from='newuser@buddycloud.example.com' 
+    to='pusher.example.com' 
+    id='023FE3AA4'
+    type='set'>
+    <query xmlns='jabber:iq:register'>
+      <remove>
+        <type>email</type>
+        <target>newuser@email.com</target>
     </query>
+</iq>
+~~~~
+
+pusher to HTTP API
+
+~~~~ {.xml}
+<iq from='pusher.example.com' 
+    id='023FE3AA4' 
+    to='newuser@buddycloud.example.com'
+    type='result'> 
+    <query xmlns='jabber:iq:register'/>
 </iq>
 ~~~~
 
