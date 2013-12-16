@@ -75,12 +75,34 @@ public class NotificationUtils {
 		}
 	}
 	
-	public static NotificationSettings getNotificationSettingsByType(String jid, String type, DataSource dataSource) {
+	public static List<NotificationSettings> getNotificationSettingsByType(String jid, 
+			String type, DataSource dataSource) {
 		PreparedStatement statement = null;
 		try {
 			statement = dataSource.prepareStatement(
 					"SELECT * FROM notification_settings WHERE jid=? AND type=?", 
 					jid, type);
+			ResultSet resultSet = statement.executeQuery();
+			List<NotificationSettings> allSettings = new LinkedList<NotificationSettings>();
+			while (resultSet.next()) {
+				allSettings.add(parseSettings(resultSet));
+			}
+			return allSettings;
+		} catch (SQLException e) {
+			LOGGER.error("Could not get notification settings from user [" + jid + "].", e);
+			throw new RuntimeException(e);
+		} finally {
+			DataSource.close(statement);
+		}
+	}
+	
+	public static NotificationSettings getNotificationSettingsByType(String jid, String type, 
+			String target, DataSource dataSource) {
+		PreparedStatement statement = null;
+		try {
+			statement = dataSource.prepareStatement(
+					"SELECT * FROM notification_settings WHERE jid=? AND type=? AND target=?", 
+					jid, type, target);
 			ResultSet resultSet = statement.executeQuery();
 			if (resultSet.next()) {
 				return parseSettings(resultSet);
@@ -110,13 +132,13 @@ public class NotificationUtils {
 	}
 
 	public static NotificationSettings updateNotificationSettings(String jid, String type, 
-			DataSource dataSource, NotificationSettings notificationSettings) {
+			String target, DataSource dataSource, NotificationSettings newSettings) {
 		
-		NotificationSettings updatedNotificationsSettings = getNotificationSettingsByType(jid, type, dataSource);
-		if (updatedNotificationsSettings == null) {
-			updatedNotificationsSettings = notificationSettings;
+		NotificationSettings settings = getNotificationSettingsByType(jid, type, target, dataSource);
+		if (settings == null) {
+			settings = newSettings;
 		} else {
-			NotificationUtils.updateNotificationSettings(notificationSettings, updatedNotificationsSettings);
+			NotificationUtils.updateNotificationSettings(newSettings, settings);
 		}
 		
 		PreparedStatement deleteStatement = null;
@@ -126,27 +148,27 @@ public class NotificationUtils {
 			connection = dataSource.getConnection();
 			connection.setAutoCommit(false);
 			deleteStatement = dataSource.prepareStatement(
-					"DELETE FROM notification_settings WHERE jid=? AND type=?", 
-					connection, jid, type);
+					"DELETE FROM notification_settings WHERE jid=? AND type=? AND target=?", 
+					connection, jid, type, target);
 			deleteStatement.executeUpdate();
 			
 			insertStatement = dataSource.prepareStatement(
 					"INSERT INTO notification_settings(jid, target, type, post_after_me, post_mentioned_me, post_on_my_channel, " +
 					"post_on_subscribed_channel, follow_my_channel, follow_request) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", connection, 
 					jid, 
-					updatedNotificationsSettings.getTarget(),
-					updatedNotificationsSettings.getType(),
-					updatedNotificationsSettings.getPostAfterMe(), 
-					updatedNotificationsSettings.getPostMentionedMe(), 
-					updatedNotificationsSettings.getPostOnMyChannel(), 
-					updatedNotificationsSettings.getPostOnSubscribedChannel(), 
-					updatedNotificationsSettings.getFollowedMyChannel(),
-					updatedNotificationsSettings.getFollowRequest());
+					settings.getTarget(),
+					settings.getType(),
+					settings.getPostAfterMe(), 
+					settings.getPostMentionedMe(), 
+					settings.getPostOnMyChannel(), 
+					settings.getPostOnSubscribedChannel(), 
+					settings.getFollowedMyChannel(),
+					settings.getFollowRequest());
 			insertStatement.executeUpdate();
 			
 			connection.commit();
 			
-			return updatedNotificationsSettings;
+			return settings;
 		} catch (SQLException e) {
 			LOGGER.error("Could not update notification settings from user [" + jid + "].", e);
 			if (connection != null) {
@@ -181,38 +203,33 @@ public class NotificationUtils {
 	}
 
 	private static void updateNotificationSettings(
-			NotificationSettings notificationSettings,
-			NotificationSettings oldNotificationsSettings) {
+			NotificationSettings newSettings,
+			NotificationSettings settings) {
 		
-		if (notificationSettings.getTarget() != null) {
-			oldNotificationsSettings.setTarget(
-					notificationSettings.getTarget());
+		if (newSettings.getPostAfterMe() != null) {
+			settings.setPostAfterMe(
+					newSettings.getPostAfterMe());
 		}
-		
-		if (notificationSettings.getPostAfterMe() != null) {
-			oldNotificationsSettings.setPostAfterMe(
-					notificationSettings.getPostAfterMe());
+		if (newSettings.getPostMentionedMe() != null) {
+			settings.setPostMentionedMe(
+					newSettings.getPostMentionedMe());
 		}
-		if (notificationSettings.getPostMentionedMe() != null) {
-			oldNotificationsSettings.setPostMentionedMe(
-					notificationSettings.getPostMentionedMe());
+		if (newSettings.getPostOnMyChannel() != null) {
+			settings.setPostOnMyChannel(
+					newSettings.getPostOnMyChannel());
 		}
-		if (notificationSettings.getPostOnMyChannel() != null) {
-			oldNotificationsSettings.setPostOnMyChannel(
-					notificationSettings.getPostOnMyChannel());
+		if (newSettings.getPostOnSubscribedChannel() != null) {
+			settings.setPostOnSubscribedChannel(
+					newSettings.getPostOnSubscribedChannel());
 		}
-		if (notificationSettings.getPostOnSubscribedChannel() != null) {
-			oldNotificationsSettings.setPostOnSubscribedChannel(
-					notificationSettings.getPostOnSubscribedChannel());
-		}
-		if (notificationSettings.getFollowedMyChannel() != null) {
-			oldNotificationsSettings.setFollowedMyChannel(
-					notificationSettings.getFollowedMyChannel());
+		if (newSettings.getFollowedMyChannel() != null) {
+			settings.setFollowedMyChannel(
+					newSettings.getFollowedMyChannel());
 		}
 		
-		if (notificationSettings.getFollowRequest() != null) {
-			oldNotificationsSettings.setFollowRequest(
-					notificationSettings.getFollowRequest());
+		if (newSettings.getFollowRequest() != null) {
+			settings.setFollowRequest(
+					newSettings.getFollowRequest());
 		}
 	}
 

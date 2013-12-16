@@ -57,8 +57,8 @@ public class SetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 		NotificationSettings notificationSettings = NotificationUtils.fromXML(settingsEl);
 		NotificationSettings updatedNotificationSettings = 
 				NotificationUtils.updateNotificationSettings(userJid, 
-						notificationSettings.getType(), getDataSource(), 
-						notificationSettings);
+						notificationSettings.getType(), notificationSettings.getTarget(), 
+						getDataSource(), notificationSettings);
 		
 		return createResponse(iq, userJid, updatedNotificationSettings);
 	}

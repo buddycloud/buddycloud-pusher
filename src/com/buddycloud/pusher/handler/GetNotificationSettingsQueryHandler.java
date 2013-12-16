@@ -15,6 +15,8 @@
  */
 package com.buddycloud.pusher.handler;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.dom4j.Element;
@@ -53,9 +55,22 @@ public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 		String userJid = iq.getFrom().toBareJID();
 		Element queryElement = iq.getElement().element("query");
 		Element typeEl = queryElement.element("type");
-		NotificationSettings notificationSettings = NotificationUtils
-				.getNotificationSettingsByType(userJid, typeEl.getText(), getDataSource());
-		return createResponse(iq, userJid, notificationSettings);
+		Element targetEl = queryElement.element("target");
+		
+		List<NotificationSettings> notificationSettingsByType = null;
+		
+		if (targetEl != null) {
+			NotificationSettings notificationSettings = NotificationUtils
+					.getNotificationSettingsByType(userJid, typeEl.getText(),
+							targetEl.getText(), getDataSource());
+			notificationSettingsByType = Arrays.asList(notificationSettings);
+		} else {
+			notificationSettingsByType = 
+					NotificationUtils.getNotificationSettingsByType(userJid, 
+							typeEl.getText(), getDataSource());
+		}
+		
+		return createResponse(iq, userJid, notificationSettingsByType);
 	}
 
 	/**
@@ -65,10 +80,13 @@ public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 	 * @return
 	 */
 	private IQ createResponse(IQ iq, String userJid,
-			NotificationSettings notificationSettings) {
+			List<NotificationSettings> allNotificationSettings) {
 		IQ result = IQ.createResultIQ(iq);
 		Element queryElement = result.getElement().addElement("query", getNamespace());
-		NotificationUtils.appendXML(queryElement, notificationSettings);
+		for (NotificationSettings notificationSettings : allNotificationSettings) {
+			Element settingsEl = queryElement.addElement("notificationSettings");
+			NotificationUtils.appendXML(settingsEl, notificationSettings);
+		}
 		return result;
 	}
 }

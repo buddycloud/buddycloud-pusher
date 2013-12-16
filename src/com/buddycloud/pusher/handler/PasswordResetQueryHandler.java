@@ -107,18 +107,21 @@ public class PasswordResetQueryHandler extends AbstractQueryHandler {
 		IQ changeCommandReplyIq = xmppComponent.syncIQ(changeCommandIq);
 		
 		if (changeCommandReplyIq.getError() == null) {
-			NotificationSettings notificationSettings = NotificationUtils
+			List<NotificationSettings> emailNotificationSettings = NotificationUtils
 					.getNotificationSettingsByType(username, "email", getDataSource());
 			
-			String emailAddress = notificationSettings.getTarget();
+			for (NotificationSettings notificationSettings : emailNotificationSettings) {
+				
+				String emailAddress = notificationSettings.getTarget();
+				Map<String, String> tokens = new HashMap<String, String>();
+				tokens.put("NEW_PASSWORD", randomPassword);
+				tokens.put("EMAIL", emailAddress);
+				tokens.put("USER_JID", username);
+				
+				Pushers.getInstance(getProperties()).get(EmailPusher.TYPE).push(
+						emailAddress, Event.PASSWORD_RESET, tokens);
+			}
 			
-			Map<String, String> tokens = new HashMap<String, String>();
-			tokens.put("NEW_PASSWORD", randomPassword);
-			tokens.put("EMAIL", emailAddress);
-			tokens.put("USER_JID", username);
-			
-			Pushers.getInstance(getProperties()).get(EmailPusher.TYPE).push(
-					emailAddress, Event.PASSWORD_RESET, tokens);
 		}
 		
 		return createResponse(iq, changeCommandReplyIq);
