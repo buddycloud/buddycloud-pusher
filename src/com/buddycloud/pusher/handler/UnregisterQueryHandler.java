@@ -17,6 +17,8 @@ package com.buddycloud.pusher.handler;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 import org.dom4j.Element;
@@ -60,9 +62,14 @@ public class UnregisterQueryHandler extends AbstractQueryHandler {
 			return createFeatureNotImplementedError(iq);
 		}
 		
+		Element typeEl = removeEl.element("type");
+		Element targetEl = removeEl.element("target");
+		
 		String from = iq.getFrom().toBareJID();
 		try {
-			removeSubscriber(from);
+			removeSubscriber(from, 
+					typeEl == null ? null : typeEl.getText(), 
+					targetEl == null ? null : targetEl.getText());
 		} catch (Exception e) {
 			return createInternalServerError(iq);
 		}
@@ -70,11 +77,24 @@ public class UnregisterQueryHandler extends AbstractQueryHandler {
 		return IQ.createResultIQ(iq);
 	}
 	
-	private void removeSubscriber(String jid) throws SQLException {
+	private void removeSubscriber(String jid, String type, 
+			String target) throws SQLException {
 		PreparedStatement statement = null;
 		try {
+			List<String> params = new LinkedList<String>();
+			StringBuilder stString = new StringBuilder();
+			stString.append("DELETE FROM notification_settings WHERE jid = ?");
+			params.add(jid);
+			if (type != null) {
+				stString.append(" AND type = ?");
+				params.add(type);
+			}
+			if (target != null) {
+				stString.append(" AND target = ?");
+				params.add(target);
+			}
 			statement = getDataSource().prepareStatement(
-					"DELETE FROM notification_settings WHERE jid = ?", jid);
+					stString.toString(), params.toArray());
 			statement.execute();
 		} catch (SQLException e) {
 			getLogger().error("Could not delete user [" + jid + "].", e);
