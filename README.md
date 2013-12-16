@@ -65,10 +65,10 @@ Notes
 Unsolved
 --------
 
--   No mobile push: no means to address [Apple's Push
+-   ~~No mobile push: no means to address [Apple's Push
     Service](http://developer.apple.com/library/mac/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/ApplePushService/ApplePushService.html)
     and [Google's Cloud Messaging for
-    Android](http://developer.android.com/guide/google/gcm/index.html)
+    Android](http://developer.android.com/guide/google/gcm/index.html)~~
 -   Daily activity report batch
 -   Unsubscribe link
 
@@ -149,6 +149,8 @@ pusher to HTTP API
 
 ### Get notification settings stanza
 
+#### Get all notification settings for a given type
+
 HTTP API to pusher
 
 ~~~~ {.xml}
@@ -156,7 +158,9 @@ HTTP API to pusher
     to='pusher.example.com' 
     id='023FE3AA4'
     type='get'>
-    <query xmlns='http://buddycloud.com/pusher/notification-settings'/>
+    <query xmlns='http://buddycloud.com/pusher/notification-settings'>
+      <type>email</type>
+    </query>
 </iq>
 ~~~~
 
@@ -167,14 +171,65 @@ pusher to HTTP API
     id='023FE3AA4' 
     to='newuser@buddycloud.example.com'
     type='result'>
-    <query xmlns='http://buddycloud.com/pusher/notification-settings'>
-         <email>email@newuser.com</email>
+    <query xmlns='http://buddycloud.com/pusher/notification-settings'>"
+      <notificationSettings>
+         <type>email</type>
+         <target>email@newuser.com</target>
          <postAfterMe>true</postAfterMe>
          <postMentionedMe>true</postMentionedMe>
          <postOnMyChannel>true</postOnMyChannel>
          <postOnSubscribedChannel>false</postOnSubscribedChannel>
          <followMyChannel>true</followMyChannel>
          <followRequest>true</followRequest>
+      </notificationSettings>
+      <notificationSettings>
+         <type>email</type>
+         <target>email@domain.com</target>
+         <postAfterMe>true</postAfterMe>
+         <postMentionedMe>true</postMentionedMe>
+         <postOnMyChannel>true</postOnMyChannel>
+         <postOnSubscribedChannel>false</postOnSubscribedChannel>
+         <followMyChannel>false</followMyChannel>
+         <followRequest>false</followRequest>
+      </notificationSettings>
+    </query>
+</iq>
+~~~~
+
+#### Get the notification settings for a given type and target
+
+HTTP API to pusher
+
+~~~~ {.xml}
+<iq from='newuser@buddycloud.example.com' 
+    to='pusher.example.com' 
+    id='023FE3AA4'
+    type='get'>
+    <query xmlns='http://buddycloud.com/pusher/notification-settings'>
+      <type>email</type>
+      <target>email@newuser.com</target>
+    </query>
+</iq>
+~~~~
+
+pusher to HTTP API
+
+~~~~ {.xml}
+<iq from='pusher.example.com' 
+    id='023FE3AA4' 
+    to='newuser@buddycloud.example.com'
+    type='result'>
+    <query xmlns='http://buddycloud.com/pusher/notification-settings'>"
+      <notificationSettings>
+         <type>email</type>
+         <target>email@newuser.com</target>
+         <postAfterMe>true</postAfterMe>
+         <postMentionedMe>true</postMentionedMe>
+         <postOnMyChannel>true</postOnMyChannel>
+         <postOnSubscribedChannel>false</postOnSubscribedChannel>
+         <followMyChannel>true</followMyChannel>
+         <followRequest>true</followRequest>
+      </notificationSettings>
     </query>
 </iq>
 ~~~~
@@ -190,9 +245,12 @@ HTTP API to pusher
     id='023FE3AA4'
     type='set'>
     <query xmlns='http://buddycloud.com/pusher/notification-settings'>
-         <email>newemail@newuser.com</email>
+      <notificationSettings>
+         <type>email</type>
+         <target>newemail@newuser.com</target>
          <postAfterMe>false</postAfterMe>
          <postMentionedMe>false</postMentionedMe>
+      </notificationSettings>
     </query>
 </iq>
 ~~~~
@@ -205,13 +263,16 @@ pusher to HTTP API
     to='newuser@buddycloud.example.com'
     type='result'>
     <query xmlns='http://buddycloud.com/pusher/notification-settings'>
-         <email>newemail@newuser.com</email>
+      <notificationSettings>
+         <type>email</type>
+         <target>newemail@newuser.com</target>
          <postAfterMe>false</postAfterMe>
          <postMentionedMe>false</postMentionedMe>
          <postOnMyChannel>true</postOnMyChannel>
          <postOnSubscribedChannel>false</postOnSubscribedChannel>
          <followMyChannel>true</followMyChannel>
          <followRequest>true</followRequest>
+      </notificationSettings>
     </query>
 </iq>
 ~~~~
