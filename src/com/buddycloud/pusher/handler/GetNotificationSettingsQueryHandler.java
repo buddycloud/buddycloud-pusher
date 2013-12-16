@@ -16,6 +16,7 @@
 package com.buddycloud.pusher.handler;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -63,7 +64,8 @@ public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 			NotificationSettings notificationSettings = NotificationUtils
 					.getNotificationSettingsByType(userJid, typeEl.getText(),
 							targetEl.getText(), getDataSource());
-			notificationSettingsByType = Arrays.asList(notificationSettings);
+			notificationSettingsByType = notificationSettings == null ? 
+					new LinkedList<NotificationSettings>() : Arrays.asList(notificationSettings);
 		} else {
 			notificationSettingsByType = 
 					NotificationUtils.getNotificationSettingsByType(userJid, 
