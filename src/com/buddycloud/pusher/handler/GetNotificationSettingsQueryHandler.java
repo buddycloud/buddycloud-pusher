@@ -84,8 +84,7 @@ public class GetNotificationSettingsQueryHandler extends AbstractQueryHandler {
 		IQ result = IQ.createResultIQ(iq);
 		Element queryElement = result.getElement().addElement("query", getNamespace());
 		for (NotificationSettings notificationSettings : allNotificationSettings) {
-			Element settingsEl = queryElement.addElement("notificationSettings");
-			NotificationUtils.appendXML(settingsEl, notificationSettings);
+			NotificationUtils.appendXML(queryElement, notificationSettings);
 		}
 		return result;
 	}
