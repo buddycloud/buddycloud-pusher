@@ -161,6 +161,7 @@ HTTP API to pusher
       <remove>
         <type>email</type>
         <target>newuser@email.com</target>
+      </remove>
     </query>
 </iq>
 ~~~~
