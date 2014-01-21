@@ -5,8 +5,6 @@ Aim
 ---
 
 -   Getting users back to buddycloud using email and push notifications
--   Helping users find existing friends using a token (email, jabberID,
-    phone number, twitterID etc)
 -   "Someone commented on your photo"
 -   "Someone commented in a thread you commented in"
 
