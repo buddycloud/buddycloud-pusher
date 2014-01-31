@@ -134,7 +134,7 @@ pusher to HTTP API
 </iq>
 ~~~~
 
-### Remove pusher record
+### Remove push record
 
 Removes all records associated to this jid.
 
@@ -241,7 +241,7 @@ pusher to HTTP API
 </iq>
 ~~~~
 
-#### Get the push settings for a given type and target
+#### Get push settings for a given type and target
 
 HTTP API to pusher
 
@@ -279,7 +279,7 @@ pusher to HTTP API
 </iq>
 ~~~~
 
-### user signed up listener
+### User signed up listener
 
 HTTP API to pusher
 
