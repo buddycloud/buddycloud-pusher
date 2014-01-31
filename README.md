@@ -91,17 +91,23 @@ Component design
 Stanzas
 -------
 
-### Signup stanza
+### Add or configure push records
 
 HTTP API to pusher
 
 ~~~~ {.xml}
+<!-- Only the fields to be modified need to be included here -->
 <iq from='newuser@buddycloud.example.com' 
     to='pusher.example.com' 
     id='023FE3AA4'
     type='set'>
-    <query xmlns='http://buddycloud.com/pusher/signup'>
-        <email>email@newuser.com</email>
+    <query xmlns='http://buddycloud.com/pusher/notification-settings'>
+      <notificationSettings>
+         <type>email</type>
+         <target>newemail@newuser.com</target>
+         <postAfterMe>false</postAfterMe>
+         <postMentionedMe>false</postMentionedMe>
+      </notificationSettings>
     </query>
 </iq>
 ~~~~
@@ -112,14 +118,25 @@ pusher to HTTP API
 <iq from='pusher.example.com' 
     id='023FE3AA4' 
     to='newuser@buddycloud.example.com'
-    type='result'> 
-    <query xmlns='http://buddycloud.com/pusher/signup'>
-        <info>User [newuser@buddycloud.example.com] signed up.</info>
+    type='result'>
+    <query xmlns='http://buddycloud.com/pusher/notification-settings'>
+      <notificationSettings>
+         <type>email</type>
+         <target>newemail@newuser.com</target>
+         <postAfterMe>false</postAfterMe>
+         <postMentionedMe>false</postMentionedMe>
+         <postOnMyChannel>true</postOnMyChannel>
+         <postOnSubscribedChannel>false</postOnSubscribedChannel>
+         <followMyChannel>true</followMyChannel>
+         <followRequest>true</followRequest>
+      </notificationSettings>
     </query>
 </iq>
 ~~~~
 
-### Leave buddycloud stanza
+### Remove pusher record
+
+Removes all records associated to this jid.
 
 HTTP API to pusher
 
@@ -175,9 +192,9 @@ pusher to HTTP API
 </iq>
 ~~~~
 
-### Get notification settings stanza
+### Get push settings
 
-#### Get all notification settings for a given type
+#### Get all push settings for a given type
 
 HTTP API to pusher
 
@@ -224,7 +241,7 @@ pusher to HTTP API
 </iq>
 ~~~~
 
-#### Get the notification settings for a given type and target
+#### Get the push settings for a given type and target
 
 HTTP API to pusher
 
@@ -262,23 +279,17 @@ pusher to HTTP API
 </iq>
 ~~~~
 
-### Set notification settings stanza
+### user signed up listener
 
 HTTP API to pusher
 
 ~~~~ {.xml}
-<!-- Only the fields to be modified need to be included here -->
 <iq from='newuser@buddycloud.example.com' 
     to='pusher.example.com' 
     id='023FE3AA4'
     type='set'>
-    <query xmlns='http://buddycloud.com/pusher/notification-settings'>
-      <notificationSettings>
-         <type>email</type>
-         <target>newemail@newuser.com</target>
-         <postAfterMe>false</postAfterMe>
-         <postMentionedMe>false</postMentionedMe>
-      </notificationSettings>
+    <query xmlns='http://buddycloud.com/pusher/signup'>
+        <email>email@newuser.com</email>
     </query>
 </iq>
 ~~~~
@@ -289,21 +300,13 @@ pusher to HTTP API
 <iq from='pusher.example.com' 
     id='023FE3AA4' 
     to='newuser@buddycloud.example.com'
-    type='result'>
-    <query xmlns='http://buddycloud.com/pusher/notification-settings'>
-      <notificationSettings>
-         <type>email</type>
-         <target>newemail@newuser.com</target>
-         <postAfterMe>false</postAfterMe>
-         <postMentionedMe>false</postMentionedMe>
-         <postOnMyChannel>true</postOnMyChannel>
-         <postOnSubscribedChannel>false</postOnSubscribedChannel>
-         <followMyChannel>true</followMyChannel>
-         <followRequest>true</followRequest>
-      </notificationSettings>
+    type='result'> 
+    <query xmlns='http://buddycloud.com/pusher/signup'>
+        <info>User [newuser@buddycloud.example.com] signed up.</info>
     </query>
 </iq>
 ~~~~
+
 
 Email Templates
 ---------------
