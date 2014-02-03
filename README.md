@@ -36,39 +36,12 @@ send all emails from the friendly "please-reply@example.com"
 
 -   bonus: after two days "you can now create a topic channel" cool!
 
-project steps
--------------
-
-1.  design email text
-    1.  ~~welcome email - ST~~
-    2.  daily activity email
-    3.  ~~follow your channel -ST~~
-    4.  ~~post in your channel email - ST~~
-    5.  invitation to channel email
-
-2.  ~~schema design -ST~~
-3.  ~~adaptation to buddycloud-server to add event triggers that talk to
-    the pusher.example.com -ST~~
-4.  ~~adapt webclient to push email address to server at reg time -ST~~
-5.  design auto unsubscribe page
-6.  decide on API links <https://api.example.com/mail/unsubscribe>
-7.  ~~add http API support -ST~~
-
 Notes
 -----
 
 -   no email validation step - wrong email just goes to the wrong person
     and they hit unsubscribe / user can’t recover password
-
-Unsolved
---------
-
--   ~~No mobile push: no means to address [Apple's Push
-    Service](http://developer.apple.com/library/mac/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/ApplePushService/ApplePushService.html)
-    and [Google's Cloud Messaging for
-    Android](http://developer.android.com/guide/google/gcm/index.html)~~
--   Daily activity report batch
--   Unsubscribe link
+-   No unsubscribe link
 
 Database schema design
 ----------------------
