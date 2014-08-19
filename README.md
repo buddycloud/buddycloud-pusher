@@ -122,6 +122,91 @@ mvn package
 java -jar target/pusher-0.1.0-jar-with-dependencies.jar
 ```
 
+## GCM Pusher
+
+### pusher: Configuration
+Create a GCM project and get an API key as per http://developer.android.com/google/gcm/gs.html#create-proj
+Change GCM settings in the pusher's configuration.properties
+
+```
+# GCM project id 
+gcm.google_project_id=
+# GCM API key 
+gcm.api_key=
+```
+
+### device: Discover project id
+The first thing your app should do is to find out which GCM project to subscribe to and then subscribe to its notifications. Your app must send a metadata stanza to the pusher, as following:
+
+~~~~ {.xml}
+<!-- Only the fields to be modified need to be included here -->
+<iq from='user@buddycloud.example.com' 
+    to='pusher.example.com' 
+    id='023FE3AA4'
+    type='get'>
+    <query xmlns='http://buddycloud.com/pusher/metadata'>
+      <type>gcm</type>
+    </query>
+</iq>
+~~~~
+
+~~~~ {.xml}
+<!-- Only the fields to be modified need to be included here -->
+<iq from='pusher.example.com' 
+    to='user@buddycloud.example.com' 
+    id='023FE3AA4'
+    type='result'>
+    <query xmlns='http://buddycloud.com/pusher/metadata'>
+      <google_project_id>123456789</google_project_id>
+    </query>
+</iq>
+~~~~
+
+### device: Register for GCM
+
+As in http://developer.android.com/google/gcm/client.html#sample-register
+
+### device: Register for Pusher notifications
+
+With your registration id, you should register for Pusher notifications and configure what events you want to be notified of.
+
+~~~~ {.xml}
+<!-- Only the fields to be modified need to be included here -->
+<iq from='user@buddycloud.example.com' 
+    to='pusher.example.com' 
+    id='023FE3AA4'
+    type='set'>
+    <query xmlns='http://buddycloud.com/pusher/notification-settings'>
+      <notificationSettings>
+         <type>gcm</type>
+         <target>$REGISTRATION_ID</target>
+         <postAfterMe>false</postAfterMe>
+         <postMentionedMe>false</postMentionedMe>
+      </notificationSettings>
+    </query>
+</iq>
+~~~~
+
+~~~~ {.xml}
+<iq from='pusher.example.com' 
+    id='023FE3AA4' 
+    to='user@buddycloud.example.com'
+    type='result'>
+    <query xmlns='http://buddycloud.com/pusher/notification-settings'>
+      <notificationSettings>
+         <type>gcm</type>
+         <target>$REGISTRATION_ID</target>
+         <postAfterMe>false</postAfterMe>
+         <postMentionedMe>false</postMentionedMe>
+         <postOnMyChannel>true</postOnMyChannel>
+         <postOnSubscribedChannel>false</postOnSubscribedChannel>
+         <followMyChannel>true</followMyChannel>
+         <followRequest>true</followRequest>
+      </notificationSettings>
+    </query>
+</iq>
+
+
 ## E-mail pusher
 
 ### When a user registers
