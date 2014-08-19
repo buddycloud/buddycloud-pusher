@@ -124,7 +124,7 @@ java -jar target/pusher-0.1.0-jar-with-dependencies.jar
 
 ## GCM Pusher
 
-### pusher: Configuration
+### Configure the Pusher service
 Create a GCM project and get an API key as per http://developer.android.com/google/gcm/gs.html#create-proj
 Change GCM settings in the pusher's configuration.properties
 
@@ -135,7 +135,7 @@ gcm.google_project_id=
 gcm.api_key=
 ```
 
-### device: Discover project id
+### Discover project id
 The first thing your app should do is to find out which GCM project to subscribe to and then subscribe to its notifications. Your app must send a metadata stanza to the pusher, as following:
 
 ~~~~ {.xml}
@@ -162,11 +162,11 @@ The first thing your app should do is to find out which GCM project to subscribe
 </iq>
 ~~~~
 
-### device: Register for GCM
+### Register for GCM
 
 As in http://developer.android.com/google/gcm/client.html#sample-register
 
-### device: Register for Pusher notifications
+### Register for Pusher notifications
 
 With your registration id, you should register for Pusher notifications and configure what events you want to be notified of.
 
@@ -205,7 +205,11 @@ With your registration id, you should register for Pusher notifications and conf
       </notificationSettings>
     </query>
 </iq>
+~~~~
 
+### Receive Pusher notifications
+
+As in http://developer.android.com/google/gcm/client.html#sample-receive, you need a GCMBroadcastReceiver and GCMIntentService to listen to GCM. Take a look at Buddycloud's [GCMIntentService](https://github.com/buddycloud/buddycloud-android/blob/master/src/com/buddycloud/GCMIntentService.java) for an example on how to handle those.
 
 ## E-mail pusher
 
