@@ -1,23 +1,45 @@
-buddycloud-pusher
-=================
+# buddycloud-pusher
 
-Aim
----
-
+## Aim
 -   Getting users back to buddycloud using email and push notifications
 -   "Someone commented on your photo"
 -   "Someone commented in a thread you commented in"
 
-When a user registers
----------------------
+## Database schema design
+
+<https://github.com/buddycloud/buddycloud-pusher/blob/master/resources/schema/create-schema.sql>
+
+Should we store time for last sent event in order to avoid oversending?
+
+## Component design
+
+-   New component: pusher.example.com
+-   Receives triggers from buddycloud channel server
+-   Only reacts on triggers from buddycloud server (avoid strange uses)
+-   Stores emails addresses during users signup
+-   Stores preferences regarding email notification
+
+![](design%20docs/Pusher-sequence.png "Sequence diagram")
+
+## Build from source
+
+```shell
+git clone https://github.com/buddycloud/buddycloud-pusher.git
+cp configuration.properties.example configuration.properties
+mvn package
+java -jar target/pusher-0.1.0-jar-with-dependencies.jar
+```
+
+## E-mail pusher
+
+### When a user registers
 
 1.  The HTTP API sends the email address to the buddycloud pusher
 2.  The pusher creates a notification profile with default preferences
 3.  The pusher creates an unique string to do one-click unsubscribe
     “click here to un-subuscribe”
 
-Emails to send
---------------
+### Emails to send
 
 send all emails from the friendly "please-reply@example.com"
 
@@ -36,35 +58,15 @@ send all emails from the friendly "please-reply@example.com"
 
 -   bonus: after two days "you can now create a topic channel" cool!
 
-Notes
------
+### Notes
 
 -   no email validation step - wrong email just goes to the wrong person
     and they hit unsubscribe / user can’t recover password
 -   No unsubscribe link
 
-Database schema design
-----------------------
+### Stanzas
 
-<https://github.com/buddycloud/buddycloud-pusher/blob/master/resources/schema/create-schema.sql>
-
-Should we store time for last sent event in order to avoid oversending?
-
-Component design
-----------------
-
--   New component: pusher.example.com
--   Receives triggers from buddycloud channel server
--   Only reacts on triggers from buddycloud server (avoid strange uses)
--   Stores emails addresses during users signup
--   Stores preferences regarding email notification
-
-![](design%20docs/Pusher-sequence.png "Sequence diagram")
-
-Stanzas
--------
-
-### Add or configure push records
+#### Add or configure push records
 
 HTTP API to pusher
 
@@ -107,7 +109,7 @@ pusher to HTTP API
 </iq>
 ~~~~
 
-### Remove push record
+#### Remove push record
 
 Removes all records associated to this jid.
 
@@ -165,9 +167,9 @@ pusher to HTTP API
 </iq>
 ~~~~
 
-### Get push settings
+#### Get push settings
 
-#### Get all push settings for a given type
+##### Get all push settings for a given type
 
 HTTP API to pusher
 
@@ -214,7 +216,7 @@ pusher to HTTP API
 </iq>
 ~~~~
 
-#### Get push settings for a given type and target
+##### Get push settings for a given type and target
 
 HTTP API to pusher
 
@@ -252,7 +254,7 @@ pusher to HTTP API
 </iq>
 ~~~~
 
-### User signed up listener
+#### User signed up listener
 
 HTTP API to pusher
 
@@ -281,8 +283,7 @@ pusher to HTTP API
 ~~~~
 
 
-Email Templates
----------------
+### Email Templates
 
 <https://github.com/buddycloud/buddycloud-pusher/tree/master/templates/email>
 
@@ -299,8 +300,7 @@ Tokens use the \<%TOKEN\_NAME%\> format, and are replaced by their
 values during runtime. Token values can be defined in the
 configuration.properties file, using the mail.template. prefix.
 
-Useful links
-------------
+### Useful links
 
 -   <https://github.com/seanpowell/Email-Boilerplate>
 -   <http://www.mkyong.com/java/javamail-api-sending-email-via-gmail-smtp-example/>
