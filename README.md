@@ -21,6 +21,10 @@ Should we store time for last sent event in order to avoid oversending?
 
 ![](design%20docs/Pusher-sequence.png "Sequence diagram")
 
+### Interaction with the Buddycloud server
+
+The Buddycloud server sends standard XEP-0060 notification messages to the pusher, as in http://www.xmpp.org/extensions/xep-0060.html#intro-howitworks.
+
 ## Build from source
 
 ```shell
