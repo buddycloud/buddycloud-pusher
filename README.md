@@ -29,7 +29,7 @@ The Buddycloud server sends standard XEP-0060 notification messages to the pushe
 
 The Pusher basic design relies on [Message Consumers](https://github.com/buddycloud/buddycloud-pusher/blob/master/src/main/java/org/buddycloud/pusher/message/MessageConsumer.java) and on [Query Handlers](https://github.com/buddycloud/buddycloud-pusher/blob/master/src/main/java/org/buddycloud/pusher/handler/QueryHandler.java).
 
-A message consumer must figure out what notifications to trigger based on a message arriving from the Buddycloud server, and then create an IQ to be sent back to the pusher itself.
+A **Message Consumer** must figure out what notifications to trigger based on a message arriving from the Buddycloud server, and then create an IQ to be sent back to the pusher itself.
 
 For instance, the [UserPostedMentionConsumer](https://github.com/buddycloud/buddycloud-pusher/blob/master/src/main/java/org/buddycloud/pusher/message/UserPostedMentionConsumer.java) applies a regular expression to the message content in order to figure out whether there is a mention in such a message, creates an IQ with the notification and sends it back to the pusher via loopback:
 
@@ -80,6 +80,37 @@ private IQ createIq(String authorJid, String mentionedJid,
 }	
 ```
 
+A **Query Handler**, on its turn, will process the IQ sent by the Message Consumer based on its namespace. It will decide whether the recipient should receive this notification, create a data dictionary to be sent and then call all the push strategies (email, GCM, ...) passing this data dictionary.
+
+The [UserPostedMentionQueryHandler](https://github.com/buddycloud/buddycloud-pusher/blob/master/src/main/java/org/buddycloud/pusher/handler/internal/UserPostedMentionQueryHandler.java), for instance, reads the IQ sent by the UserPostedMentionConsumer, creates the data dictionary and then decide if the recipient should receive this notification based on its notification settings:
+
+``` java
+Map<String, String> tokens = new HashMap<String, String>();
+|tokens.put("AUTHOR_JID", authorJid);
+tokens.put("MENTIONED_JID", mentionedJid);
+tokens.put("CHANNEL_JID", channelJid);
+tokens.put("CONTENT", postContent);
+
+List<NotificationSettings> allNotificationSettings = NotificationUtils.getNotificationSettings(
+		mentionedJid, getDataSource());
+
+for (NotificationSettings notificationSettings : allNotificationSettings) {
+	if (!notificationSettings.getPostMentionedMe()) {
+		getLogger().warn("User " + mentionedJid + " won't receive mention notifications.");
+		continue;
+	}
+			
+	if (notificationSettings.getTarget() == null) {
+		getLogger().warn("User " + mentionedJid + " has no target registered.");
+		continue;
+	}
+
+	Pusher pusher = Pushers.getInstance(getProperties()).get(notificationSettings.getType());
+	pusher.push(notificationSettings.getTarget(), Event.MENTION, tokens);
+}
+```
+
+New **Query Handlers should be registered** in the [XMPPComponent.initHandlers] (https://github.com/buddycloud/buddycloud-pusher/blob/master/src/main/java/org/buddycloud/pusher/XMPPComponent.java#L83) method, while new **Message Consumers should be added** to the [MessageProcessor.initConsumers](https://github.com/buddycloud/buddycloud-pusher/blob/master/src/main/java/org/buddycloud/pusher/message/MessageProcessor.java#L21) method.
 
 ## Build from source
 
