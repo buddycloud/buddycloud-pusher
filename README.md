@@ -25,6 +25,7 @@ Should we store time for last sent event in order to avoid oversending?
 
 ```shell
 git clone https://github.com/buddycloud/buddycloud-pusher.git
+cd buddycloud-pusher
 cp configuration.properties.example configuration.properties
 mvn package
 java -jar target/pusher-0.1.0-jar-with-dependencies.jar
