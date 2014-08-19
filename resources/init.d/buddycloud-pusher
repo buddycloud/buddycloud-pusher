@@ -7,7 +7,8 @@ DESC="buddycloud pusher"
 NAME="buddycloud-pusher"
 RUNFROM=/usr/share/buddycloud-pusher
 DAEMON=/usr/bin/java
-DAEMON_ARGS="-cp .:./*:./lib/* com.buddycloud.pusher.Main"
+JARFILE=$(cd $RUNFROM; ls -t target/pusher-*-jar-with-dependencies.jar | head -n1)
+DAEMON_ARGS="-jar $JARFILE"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/buddycloud-pusher
 
