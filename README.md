@@ -25,6 +25,62 @@ Should we store time for last sent event in order to avoid oversending?
 
 The Buddycloud server sends standard XEP-0060 notification messages to the pusher, as in http://www.xmpp.org/extensions/xep-0060.html#intro-howitworks.
 
+### Creating handlers for new notification types
+
+The Pusher basic design relies on [Message Consumers](https://github.com/buddycloud/buddycloud-pusher/blob/master/src/main/java/org/buddycloud/pusher/message/MessageConsumer.java) and on [Query Handlers](https://github.com/buddycloud/buddycloud-pusher/blob/master/src/main/java/org/buddycloud/pusher/handler/QueryHandler.java).
+
+A message consumer must figure out what notifications to trigger based on a message arriving from the Buddycloud server, and then create an IQ to be sent back to the pusher itself.
+
+For instance, the [UserPostedMentionConsumer](https://github.com/buddycloud/buddycloud-pusher/blob/master/src/main/java/org/buddycloud/pusher/message/UserPostedMentionConsumer.java) applies a regular expression to the message content in order to figure out whether there is a mention in such a message, creates an IQ with the notification and sends it back to the pusher via loopback:
+
+``` java
+public void consume(Message message, List<String> recipients) {
+		
+	Element eventEl = message.getChildElement("event", ConsumerUtils.PUBSUB_EVENT_NS);
+	Element itemsEl = eventEl.element("items");
+	AtomEntry entry = AtomEntry.parse(itemsEl);
+	if (entry == null) {
+		return;
+	}
+	
+	Matcher matcher = JID_REGEX.matcher(entry.getContent());
+	while (matcher.find()) {
+		String mentionedJid = matcher.group();
+		newMention(mentionedJid, entry, recipients);
+	}
+}
+	
+private void newMention(String mentionedJid, AtomEntry entry, List<String> recipients) {
+	if (mentionedJid.equals(entry.getAuthor()) || recipients.contains(mentionedJid)) {
+		return;
+	}
+	
+	IQ iq = createIq(entry.getAuthor(), mentionedJid, 
+			entry.getNode(), entry.getContent());
+	try {
+		IQ iqResponse = getXmppComponent().handleIQLoopback(iq);
+		if (iqResponse.getError() == null) {
+			recipients.add(mentionedJid);
+		}
+	} catch (Exception e) {
+		LOGGER.warn(e);
+	}
+}
+
+private IQ createIq(String authorJid, String mentionedJid, 
+		String channelJid, String content) {
+	IQ iq = new IQ();
+	Element queryEl = iq.getElement().addElement("query", 
+			"http://buddycloud.com/pusher/userposted-mention");
+	queryEl.addElement("authorJid").setText(authorJid);
+	queryEl.addElement("mentionedJid").setText(mentionedJid);
+	queryEl.addElement("channel").setText(ConsumerUtils.getChannelAddress(channelJid));
+	queryEl.addElement("postContent").setText(content);
+    return iq;
+}	
+```
+
+
 ## Build from source
 
 ```shell
